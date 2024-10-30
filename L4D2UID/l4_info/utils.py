@@ -1,27 +1,23 @@
 from pathlib import Path
-from typing import Tuple, Union, Optional
+from typing import Optional, Tuple, Union
 
-from gsuid_core.logger import logger
-from PIL import Image, ImageDraw, ImageFont
 from gsuid_core.data_store import get_res_path
+from gsuid_core.logger import logger
+from gsuid_core.utils.image.image_tools import draw_text_by_line
 from gsuid_core.utils.image.utils import download_pic_to_image
-from gsuid_core.utils.image.image_tools import (
-    draw_text_by_line,
-    draw_pic_with_ring,
-)
+from PIL import Image, ImageDraw, ImageFont
+
 from ..utils.l4_font import FONT_MAIN_PATH, FONT_TIELE_PATH
-TEXTURE = Path(__file__).parent / 'texture2d'
+
+TEXTURE = Path(__file__).parent / "texture2d"
 
 
-
-ICON_PATH = Path(__file__).parent / 'texture2d/icon'
+ICON_PATH = Path(__file__).parent / "texture2d/icon"
 font_head = ImageFont.truetype(str(FONT_TIELE_PATH), 20)
 font_main = ImageFont.truetype(str(FONT_MAIN_PATH), 20)
 
 
-async def save_img(
-    img_url: str, img_type: str, size: Optional[Tuple[int, int]] = None
-):
+async def save_img(img_url: str, img_type: str, size: Optional[Tuple[int, int]] = None):
     """下载图片并缓存以读取"""
     map_img = Image.new("RGBA", (200, 600), (0, 0, 0, 255))
     img_path = get_res_path("CS2UID") / img_type / img_url.split("/")[-1]
@@ -30,8 +26,8 @@ async def save_img(
         for i in range(3):
             try:
                 map_img = await download_pic_to_image(img_url)
-                if map_img.mode != 'RGBA':
-                    map_img = map_img.convert('RGBA')
+                if map_img.mode != "RGBA":
+                    map_img = map_img.convert("RGBA")
                 if map_img:
                     map_img.save(img_path)
                     break
@@ -44,8 +40,8 @@ async def save_img(
     else:
 
         map_img = Image.open(img_path)
-        if map_img.mode != 'RGBA':
-            map_img = map_img.convert('RGBA')
+        if map_img.mode != "RGBA":
+            map_img = map_img.convert("RGBA")
     if size:
         map_img.resize(size)
     return map_img
@@ -90,9 +86,7 @@ async def paste_img(
         site_x + ba + 5,
         site[1] + bb + 7,
     )
-    mask = Image.new(
-        'RGBA', (int(ba - aa + 5), int(bb - ab + 5)), (255, 255, 255, s)
-    )
+    mask = Image.new("RGBA", (int(ba - aa + 5), int(bb - ab + 5)), (255, 255, 255, s))
     draw_mask = ImageDraw.Draw(mask)
     draw_mask.rectangle(site_white, fill=rect_color)
 
@@ -142,32 +136,27 @@ async def resize_image_to_percentage(img: Image.Image, percentage: float):
     width, height = img.size
     new_width = int(width * percentage / 100)
     new_height = int(height * percentage / 100)
-    out_img = Image.new(
-        'RGBA', (new_width, new_height), color=(255, 255, 255, 255)
-    )
+    out_img = Image.new("RGBA", (new_width, new_height), color=(255, 255, 255, 255))
     pic_new = img.resize((new_width, new_height))
     out_img.paste(pic_new)
     return out_img
 
 
-async def load_groudback(
-    bg_img_path: Path | Image.Image, alpha_percent: float = 0.5
-):
+async def load_groudback(bg_img_path: Path | Image.Image, alpha_percent: float = 0.5):
     """加载背景图
     透明一半"""
     if isinstance(bg_img_path, Path):
         first_img = Image.open(bg_img_path)
-        if first_img.mode != 'RGBA':
-            first_img = first_img.convert('RGBA')
+        if first_img.mode != "RGBA":
+            first_img = first_img.convert("RGBA")
     else:
         first_img = bg_img_path
     transparent_img = Image.new(
-        'RGBA', first_img.size, (255, 255, 255, int(255 * alpha_percent))
+        "RGBA", first_img.size, (255, 255, 255, int(255 * alpha_percent))
     )
     first_img.paste(transparent_img, None, transparent_img)
 
     return first_img
-
 
 
 async def percent_to_img(percent: float, size: tuple = (211, 46)):
