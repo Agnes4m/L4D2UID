@@ -6,24 +6,11 @@ from gsuid_core.data_store import get_res_path
 
 # 然后添加到GsCore网页控制台中
 from gsuid_core.utils.plugins_config.gs_config import StringConfig
-from gsuid_core.utils.plugins_config.models import GSC, GsDictConfig
+from gsuid_core.utils.plugins_config.models import GSC
 
 # 建立自己插件的CONFIG_DEFAULT
 # 名字无所谓, 类型一定是Dict[str, GSC]，以下为示例，可以添加无数个配置
-CONIFG_DEFAULT: Dict[str, GSC] = {
-    "anne": GsDictConfig(
-        {
-            "title": "安妮",
-            "desc": "安妮是一个可爱的动物",
-        }
-    ),
-    "anne_age": {
-        "title": "安妮的年龄",
-        "desc": "安妮的年龄",
-        "data": 0,
-        "max_value": 100,
-    },
-}
+CONIFG_DEFAULT: Dict[str, GSC] = {}
 
 CONFIG_PATH = get_res_path("L4D2UID") / "config.json"
 
