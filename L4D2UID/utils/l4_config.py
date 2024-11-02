@@ -15,4 +15,4 @@ CONIFG_DEFAULT: Dict[str, GSC] = {}
 CONFIG_PATH = get_res_path("L4D2UID") / "config.json"
 
 # 分别传入 配置总名称（不要和其他插件重复），配置路径，以及配置模型
-majs_config = StringConfig("L4D2UID", CONFIG_PATH, CONIFG_DEFAULT)
+l4d2_config = StringConfig("L4D2UID", CONFIG_PATH, CONIFG_DEFAULT)

@@ -28,10 +28,16 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
         arg = arg.replace("呆呆", "")
     else:
         tag = await L4D2Bind.get_searchtype(ev.user_id)
-    if tag is None:
+    if tag is None or not tag:
         tag = "云"
-    uid64 = await get_uid(bot, ev, L4D2Bind)
-    if uid64 is None:
+    logger.info(f"[l4]正在查询服务器{tag}")
+    uid64 = await L4D2Bind.get_steam32(ev.user_id)
+    logger.info(f"[l4]服务器{tag}的uid64为{uid64}")
+    if arg:
+        uid64 = arg
+    elif uid64 and not arg:
+        pass
+    else:
         return await bot.send("未绑定uid")
     if tag == "云":
         out_msg =await get_anne_search_img(uid64)

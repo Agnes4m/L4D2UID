@@ -13,6 +13,7 @@ exec_list.extend(
 )
 
 class L4D2Bind(Bind, table=True):
+    __table_args__ = {'extend_existing': True}
     uid: Optional[str] = Field(default=None, title="L4D2UID")
     steam32: Optional[str] = Field(default="", title="steam64")
     searchtype: str = Field(default="云", title="搜索类型")
@@ -28,7 +29,7 @@ class L4D2Bind(Bind, table=True):
     ) -> int:
         """更改steam32的参数值"""
 
-        data = await cls.update_data(user_id, bot_id, platform=steam32)
+        data = await cls.update_data(user_id, bot_id, steam32=steam32)
         return data
 
     @classmethod
@@ -54,7 +55,7 @@ class L4D2Bind(Bind, table=True):
     ) -> int:
         """更改steam32的参数值"""
 
-        data = await cls.update_data(user_id, bot_id, platform=searchtype)
+        data = await cls.update_data(user_id, bot_id, searchtype=searchtype)
         return data
 
     @classmethod
@@ -70,6 +71,7 @@ class L4D2Bind(Bind, table=True):
         return data.searchtype if data else None
 
 class L4D2User(User, table=True):
+    __table_args__ = {'extend_existing': True}
     uid: Optional[str] = Field(default=None, title="L4D2UID")
 
 
