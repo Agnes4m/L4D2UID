@@ -1,6 +1,7 @@
 
 
 
+from os import error
 import re
 from typing import Union, List
 
@@ -24,7 +25,7 @@ async def get_anne_search_img(keyword: str  ) -> Union[str, bytes]:
 async def get_anne_player_img(keyword: str):
     detail = await l4_api.play_info(keyword)
 
-    # logger.info(detail)
+    logger.info(detail)
     if isinstance(detail, int):
         return get_error(detail)
     if detail is None:
@@ -34,21 +35,42 @@ async def get_anne_player_img(keyword: str):
 
 async def draw_anne_player_img(detail: AnnePlayer2):
     if not detail:
-        return 1001
+        return get_error(1001)
     
     msg_out = f"""--用户信息如下--
+
 {detail["kill_msg"]}
 """
         
     info_data = detail['info']
-    msg_out += f"姓名：{info_data['name']}\n"
-    # 头像 f"{info_data['avatar']}\n"
-    msg_out += f"最近游戏时间：{info_data['lasttime']}\n"
-    msg_out += f"游玩时间：{info_data['playtime']}\n"
+    msg_out += f"""姓名：{info_data['name']}
+    # 头像 f"{info_data['avatar']}
+最近游戏时间：{info_data['lasttime']}
+游玩时间：{info_data['playtime']}
+"""
     
     detail_data = detail['detail']
-    msg_out += f"排名：{detail_data['rank']}"
-    msg_out += f"得分：{detail_data['source']}"
-    msg_out += f"每分钟得分：{detail_data['avg_source']}"
-        
+    msg_out += f"""排名：{detail_data['rank']}
+得分：{detail_data['source']}
+每分钟得分：{detail_data['avg_source']}
+感染者消灭：{detail_data['kills']}
+生还者消灭：{detail_data['kills_people']}
+爆头：{detail_data['headshots']}
+爆头率：{detail_data['avg_headshots']}
+游玩地图数量：{detail_data['map_play']}
+"""
+    
+    
+    errorr = detail['error']
+    msg_out += f""" 
+--- 黑枪数据 ---
+黑枪次数：{errorr['mistake_shout']}
+杀死队友次数：{errorr['kill_friend']}
+击倒队友次数：{errorr['down_friend']}
+放弃队友次数：{errorr['abandon_friend']}
+让感染者进安全门次数：{errorr['put_into']}
+惊扰Witch次数：{errorr['agitate_witch']}
+"""
+    
+
     return await text2pic(msg_out)

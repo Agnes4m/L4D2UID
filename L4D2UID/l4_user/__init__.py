@@ -34,14 +34,14 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
     await bot.logger.info("[L4] 开始执行[绑定/解绑用户信息]")
     qid = ev.user_id
     await bot.logger.info("[L4] [绑定/解绑]UserID: {}".format(qid))
-    if "64" in uid:
+    if ":" not in uid:
         # 64位uid
         uid = uid.split("64")[0]
 
         if uid and not uid.isdigit() or uid and len(uid) != 17:
 
             return await bot.send(
-                "你输入了错误的格式!\n正确的UID是个人资料steam64位id\n可以使用[l4搜索 xxx]查询uid"
+                "你输入了错误的格式!\n正确的UID是个人资料steam32位id\n可以使用[l4搜索 xxx]查询uid"
             )
 
         if "绑定" in ev.command:
@@ -78,6 +78,7 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                     -1: f"[L4] 该UID{uid}不在已绑定列表中！",
                 },
             )
+        
     else:
         if "绑定" in ev.command:
             if not uid:

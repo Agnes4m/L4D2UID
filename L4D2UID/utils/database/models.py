@@ -28,8 +28,11 @@ class L4D2Bind(Bind, table=True):
         steam32: str,
     ) -> int:
         """更改steam32的参数值"""
-
-        data = await cls.update_data(user_id, bot_id, steam32=steam32)
+        try:
+            data = await cls.insert_data(user_id, bot_id, steam32=steam32)
+        except Exception as e:
+            # logger.error(e)
+            data = await cls.update_data(user_id, bot_id, steam32=steam32)
         return data
 
     @classmethod

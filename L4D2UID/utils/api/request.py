@@ -161,29 +161,64 @@ class L4D2Api:
         if isinstance(data, bytes):
             html_content = data
             soup = BeautifulSoup(html_content, "lxml")
-            tbody = soup.find(
+            # logger.info(soup)
+            with open("/home/ubuntu/soup.html", "w", encoding="utf-8") as f:
+                f.write(str(soup))
+            # kill
+            tkill = soup.find(
                 "div",
-                class_="content text-center text-md-left",
-                style="background-color: #f2f2f2;",
+                class_ = "content text-center text-md-left",
+                style = "background-color: #f2f2f2;",
             )
-            if tbody is None:
-                return 401
-            kill_tag = tbody.find(
+            kill_tag = tkill.find(
                 "div",
                 class_="card-body worldmap d-flex flex-column justify-content-center text-center",
             )
+            
             if kill_tag is None:
                 return 401
-            tbody_tags = tbody.find_all(
-                "table",
-                class_="table content-table-noborder text-left",
+            kill_text = kill_tag.get_text(separator=' ', strip=True)
+            logger.info(kill_text)
+                        
+            # 内容
+            tbody = soup.find_all(
+                "div",
+                class_="container text-left",
+            )[1]
+            if tbody is None:
+                return 401
+            tbodyy = tbody.find_all(
+                "div",
+                class_= "card-deck"
             )
-            print(len(tbody_tags))
+            logger.info(len(tbodyy))
+            
+            # 前面部分
+            tbody_tags = []
+            for one_tbody in tbodyy:
+                tbody_tag = one_tbody.find_all(
+                    "div",
+                    class_="card rounded-0",
+                )
+                for tbody_one in tbody_tag:
+                    tbody_tags.append(tbody_one)
+            
+            # 感染者和生还者部分
+            ttbody = tbody.find_all(
+                "div",
+                class_= "card rounded-0"
+            )
+            tbody_tags.append(ttbody[-2])
+            tbody_tags.append(ttbody[-1])
+
+            logger.info(len(tbody_tags)) 
+
             info_tag = tbody_tags[0]
             detail_tag = tbody_tags[1]
             error_tag = tbody_tags[2]
             inf_avg_tag = tbody_tags[3]
             sur_tag = tbody_tags[4]
+            logger.info(sur_tag)
             inf_tag = tbody_tags[5]
 
             info_tr = info_tag.select("tr")
@@ -225,6 +260,7 @@ class L4D2Api:
                 "avg_jockey": inf_avg_tag.select("tr")[5].select("td")[1].text.strip(),
                 "avg_tank": inf_avg_tag.select("tr")[6].select("td")[1].text.strip(),
             }
+            logger.info(sur_tag.select("tr"))
             sur_dict = {
                 "map_clear": sur_tag.select("tr")[0].select("td")[1].text.strip(),
                 "prefect_into": sur_tag.select("tr")[1].select("td")[1].text.strip(),
@@ -274,7 +310,7 @@ class L4D2Api:
             inf_dict = cast(AnnePlayerInf, inf_dict)
 
             out_dict = {
-                "kill_msg": kill_tag.text if kill_tag is not None else "",
+                "kill_msg": kill_text if kill_text is not None else "",
                 "info": info_dict,
                 "detail": detail_dict,
                 "inf_avg": inf_avg_dict,
