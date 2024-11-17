@@ -1,7 +1,5 @@
 from typing import TypedDict
 
-from sqlalchemy.sql.functions import rank
-
 
 class UserSearch(TypedDict):
     rank: str
@@ -9,6 +7,7 @@ class UserSearch(TypedDict):
     scoce: str
     play_time: str
     last_time: str
+    steamid: str
 
 
 class AnnePlayer(TypedDict):

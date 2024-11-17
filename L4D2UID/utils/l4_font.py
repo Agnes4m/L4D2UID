@@ -1,4 +1,3 @@
-
 from PIL import ImageFont
 from gsuid_core.utils.fonts.fonts import core_font as l4_font
 

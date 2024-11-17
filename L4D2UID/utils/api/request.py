@@ -129,29 +129,39 @@ class L4D2Api:
 
         data = await self._l4_request(
             ANNESEARCHAPI,
-            json={"search": keyword},
+            data={"search": keyword},
+            method="POST",
             out_type="html",
         )
         if isinstance(data, int):
             return data
-        data = cast(str, data)
-        tree: html.HtmlElement = html.fromstring(data)
-        tbody_content: html.HtmlElement = tree.xpath(
-            "/html/body/div[6]/div/div[3]/div/table/tbody"
-        )
-        out_list: List[UserSearch] = []
+        if isinstance(data, bytes):
+            html_content = data
+            soup = BeautifulSoup(html_content, "lxml")
+            with open("/home/ubuntu/soup.html", "w", encoding="utf-8") as f:
+                f.write(str(soup))
+            tbody = soup.find("tbody")
+            tr_list = tbody.find_all("tr")
+            if not tr_list:
+                return 401
 
-        for tr in tbody_content[0].xpath("./tr"):
-            for td in tr.xpath("./td"):
+            out_list: List[UserSearch] = []
+
+            for tr in tr_list:
+                steamid = tr.get("onclick").split("steamid=")[-1]
+                td_list = tr.find_all("td")
+                logger.info(td_list)
                 search_info = {
-                    "rank": td[0].text,
-                    "name": td[1].text,
-                    "scoce": td[2].text,
-                    "play_time": td[3].text,
-                    "last_time": td[4].text,
+                    "rank": td_list[0].text,
+                    "name": td_list[1].text,
+                    "scoce": td_list[2].text,
+                    "play_time": td_list[3].text,
+                    "last_time": td_list[4].text,
+                    "steamid": steamid,
                 }
                 out_list.append(cast(UserSearch, search_info))
-
+        else:
+            return 401
         return out_list[:5]
 
     async def play_info(self, steam_id: str):
@@ -166,8 +176,8 @@ class L4D2Api:
             html_content = data
             soup = BeautifulSoup(html_content, "lxml")
             # logger.info(soup)
-            with open("/home/ubuntu/soup.html", "w", encoding="utf-8") as f:
-                f.write(str(soup))
+            # with open("/home/ubuntu/soup.html", "w", encoding="utf-8") as f:
+            #     f.write(str(soup))
             # kill
             tkill = soup.find(
                 "div",

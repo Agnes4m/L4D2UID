@@ -4,24 +4,31 @@ from typing import Union
 
 from PIL import Image, ImageDraw
 from gsuid_core.logger import logger
+from gsuid_core.utils.image.convert import convert_img
 from gsuid_core.utils.image.image_tools import easy_paste, draw_pic_with_ring
 
 from ..utils.l4_api import l4_api
 from ..utils.error_reply import get_error
-from ..utils.api.models import UserSearch, AnnePlayer2
+from ..utils.api.models import AnnePlayer2
 from ..utils.l4_font import l4_font_20, l4_font_26, l4_font_30, l4_font_40
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
 
-async def get_anne_search_img(keyword: str) -> Union[str, bytes]:
+async def get_anne_search_img(keyword: str) -> str:
     detail = await l4_api.search_player(keyword)
 
     # logger.info(detail)
     if isinstance(detail, int):
         return get_error(detail)
 
-    return ""
+    search_len = len(detail)
+    search_msg = f"搜索结果{search_len}个：\n"
+    for i in range(min(search_len, 8)):
+        search_msg += f"""
+{i+1}、{detail[i]['name']} | {detail[i]['steamid']} | {detail[i]['play_time']}
+"""
+    return search_msg
 
 
 async def get_anne_player_img(
