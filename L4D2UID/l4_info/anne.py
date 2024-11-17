@@ -24,10 +24,10 @@ async def get_anne_search_img(keyword: str) -> str:
 
     search_len = len(detail)
     search_msg = f"搜索结果{search_len}个：\n"
-    for i in range(min(search_len, 8)):
+    for i in range(min(search_len, 5)):
         search_msg += f"""
-{i+1}、{detail[i]['name']} | {detail[i]['steamid']} | {detail[i]['play_time']}
-"""
+{i+1}、{detail[i]['name']} | {detail[i]['scoce']} | {detail[i]['last_time']}
+{detail[i]['steamid']}"""
     return search_msg
 
 

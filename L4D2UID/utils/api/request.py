@@ -21,6 +21,10 @@ from .models import (
     AnnePlayerInfAvg,
 )
 
+kill_class = (
+    "card-body worldmap d-flex flex-column justify-content-center text-center"
+)
+
 
 class L4D2Api:
     ssl_verify = False
@@ -115,9 +119,7 @@ class L4D2Api:
             return data
         data = cast(str, data)
         tree: html.HtmlElement = html.fromstring(data)
-        tbody_content = tree.xpath(
-            "/html/body/div[6]/div/div[4]/div/table/tbody"
-        )
+        tree.xpath("/html/body/div[6]/div/div[4]/div/table/tbody")
 
         # if tbody_content:
         #     rows = tbody_content[0].xpath('./tr')  # 获取所有 <tr> 元素
@@ -148,7 +150,7 @@ class L4D2Api:
             out_list: List[UserSearch] = []
 
             for tr in tr_list:
-                steamid = tr.get("onclick").split("steamid=")[-1]
+                steamid = tr.get("onclick").split("steamid=")[-1][:1]
                 td_list = tr.find_all("td")
                 logger.info(td_list)
                 search_info = {
@@ -186,7 +188,7 @@ class L4D2Api:
             )
             kill_tag = tkill.find(
                 "div",
-                class_="card-body worldmap d-flex flex-column justify-content-center text-center",
+                class_=kill_class,
             )
 
             if kill_tag is None:

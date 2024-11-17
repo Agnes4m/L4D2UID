@@ -1,6 +1,7 @@
 from typing import Optional
 
 from sqlmodel import Field
+from gsuid_core.logger import logger
 from gsuid_core.utils.database.startup import exec_list
 from gsuid_core.utils.database.base_models import Bind, User, with_session
 from gsuid_core.webconsole.mount_app import PageSchema, GsAdminModel, site
@@ -32,7 +33,7 @@ class L4D2Bind(Bind, table=True):
         try:
             data = await cls.insert_data(user_id, bot_id, steam32=steam32)
         except Exception as e:
-            # logger.error(e)
+            logger.error(e)
             data = await cls.update_data(user_id, bot_id, steam32=steam32)
         return data
 

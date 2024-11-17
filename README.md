@@ -26,11 +26,11 @@
 
 ## 丨功能
 
-- 电信anne服数据查询
-
-## 丨使用方式
+### 电信anne服数据查询
 
 - l4绑定 [steamid32] - 求生之路内控制台输入`status`即可看
+- l4查询 [SteamID] - 查询电信anne服数据
+- l4搜索 [SteamID] - 查询电信anne服数据
 
 ## to do
 

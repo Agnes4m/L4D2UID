@@ -1,5 +1,4 @@
 import httpx
-from lxml import html
 from bs4 import BeautifulSoup
 
 resp = httpx.get(
@@ -18,7 +17,7 @@ tbody = soup.find(
 if tbody is not None:
     kill_tag = tbody.find(
         name="div",
-        class_="card-body worldmap d-flex flex-column justify-content-center text-center",
+        class_="card-body worldmap d-flex flex-column",
     )
     print(kill_tag)
     tbody_tags = tbody.find_all(
