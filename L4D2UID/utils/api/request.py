@@ -1,24 +1,24 @@
-import json as js
 import random
+import json as js
 from copy import deepcopy
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Dict, List, Union, Literal, Optional, cast
 
-from bs4 import BeautifulSoup
-from gsuid_core.logger import logger
-from httpx import AsyncClient
 from lxml import html
+from bs4 import BeautifulSoup
+from httpx import AsyncClient
+from gsuid_core.logger import logger
 
 from ..database.models import L4D2User
-from .api import ANNEPLAYERAPI, ANNERANKAPI, ANNESEARCHAPI
+from .api import ANNERANKAPI, ANNEPLAYERAPI, ANNESEARCHAPI
 from .models import (
-    AnnePlayer2,
-    AnnePlayerDetail,
-    AnnePlayerError,
-    AnnePlayerInf,
-    AnnePlayerInfAvg,
-    AnnePlayerInfo,
-    AnnePlayerSur,
     UserSearch,
+    AnnePlayer2,
+    AnnePlayerInf,
+    AnnePlayerSur,
+    AnnePlayerInfo,
+    AnnePlayerError,
+    AnnePlayerDetail,
+    AnnePlayerInfAvg,
 )
 
 
@@ -90,7 +90,9 @@ class L4D2Api:
                     try:
                         raw_data = js.loads(_raw_data)
                     except:  # noqa: E722
-                        raw_data = {"result": {"error_code": -999, "data": _raw_data}}
+                        raw_data = {
+                            "result": {"error_code": -999, "data": _raw_data}
+                        }
                 try:
                     if not raw_data["result"]:
                         return raw_data
@@ -113,7 +115,9 @@ class L4D2Api:
             return data
         data = cast(str, data)
         tree: html.HtmlElement = html.fromstring(data)
-        tbody_content = tree.xpath("/html/body/div[6]/div/div[4]/div/table/tbody")
+        tbody_content = tree.xpath(
+            "/html/body/div[6]/div/div[4]/div/table/tbody"
+        )
 
         # if tbody_content:
         #     rows = tbody_content[0].xpath('./tr')  # 获取所有 <tr> 元素
@@ -167,19 +171,19 @@ class L4D2Api:
             # kill
             tkill = soup.find(
                 "div",
-                class_ = "content text-center text-md-left",
-                style = "background-color: #f2f2f2;",
+                class_="content text-center text-md-left",
+                style="background-color: #f2f2f2;",
             )
             kill_tag = tkill.find(
                 "div",
                 class_="card-body worldmap d-flex flex-column justify-content-center text-center",
             )
-            
+
             if kill_tag is None:
                 return 401
             kill_text = kill_tag.get_text(separator=' ', strip=True)
-            logger.info(kill_text)
-                        
+            # logger.info(kill_text)
+
             # 内容
             tbody = soup.find_all(
                 "div",
@@ -187,12 +191,9 @@ class L4D2Api:
             )[1]
             if tbody is None:
                 return 401
-            tbodyy = tbody.find_all(
-                "div",
-                class_= "card-deck"
-            )
-            logger.info(len(tbodyy))
-            
+            tbodyy = tbody.find_all("div", class_="card-deck")
+            # logger.info(len(tbodyy))
+
             # 前面部分
             tbody_tags = []
             for one_tbody in tbodyy:
@@ -202,23 +203,20 @@ class L4D2Api:
                 )
                 for tbody_one in tbody_tag:
                     tbody_tags.append(tbody_one)
-            
+
             # 感染者和生还者部分
-            ttbody = tbody.find_all(
-                "div",
-                class_= "card rounded-0"
-            )
+            ttbody = tbody.find_all("div", class_="card rounded-0")
             tbody_tags.append(ttbody[-2])
             tbody_tags.append(ttbody[-1])
 
-            logger.info(len(tbody_tags)) 
+            # logger.info(len(tbody_tags))
 
             info_tag = tbody_tags[0]
             detail_tag = tbody_tags[1]
             error_tag = tbody_tags[2]
             inf_avg_tag = tbody_tags[3]
             sur_tag = tbody_tags[4]
-            logger.info(sur_tag)
+            # logger.info(sur_tag)
             inf_tag = tbody_tags[5]
 
             info_tr = info_tag.select("tr")
@@ -230,49 +228,109 @@ class L4D2Api:
                 "lasttime": info_tr[4].select("td")[1].text.strip(),
             }
             detail_tag = {
-                "rank": detail_tag.select("tr")[0].select("td")[1].text.strip(),
-                "source": detail_tag.select("tr")[1].select("td")[1].text.strip(),
-                "avg_source": detail_tag.select("tr")[2].select("td")[1].text.strip(),
-                "kills": detail_tag.select("tr")[3].select("td")[1].text.strip(),
-                "kills_people": detail_tag.select("tr")[4].select("td")[1].text.strip(),
-                "headshots": detail_tag.select("tr")[5].select("td")[1].text.strip(),
+                "rank": detail_tag.select("tr")[0]
+                .select("td")[1]
+                .text.strip(),
+                "source": detail_tag.select("tr")[1]
+                .select("td")[1]
+                .text.strip(),
+                "avg_source": detail_tag.select("tr")[2]
+                .select("td")[1]
+                .text.strip(),
+                "kills": detail_tag.select("tr")[3]
+                .select("td")[1]
+                .text.strip(),
+                "kills_people": detail_tag.select("tr")[4]
+                .select("td")[1]
+                .text.strip(),
+                "headshots": detail_tag.select("tr")[5]
+                .select("td")[1]
+                .text.strip(),
                 "avg_headshots": detail_tag.select("tr")[6]
                 .select("td")[1]
                 .text.strip(),
-                "map_play": detail_tag.select("tr")[7].select("td")[1].text.strip(),
+                "map_play": detail_tag.select("tr")[7]
+                .select("td")[1]
+                .text.strip(),
             }
             error_tag = {
-                "mistake_shout": error_tag.select("tr")[0].select("td")[1].text.strip(),
-                "kill_friend": error_tag.select("tr")[1].select("td")[1].text.strip(),
-                "down_friend": error_tag.select("tr")[2].select("td")[1].text.strip(),
+                "mistake_shout": error_tag.select("tr")[0]
+                .select("td")[1]
+                .text.strip(),
+                "kill_friend": error_tag.select("tr")[1]
+                .select("td")[1]
+                .text.strip(),
+                "down_friend": error_tag.select("tr")[2]
+                .select("td")[1]
+                .text.strip(),
                 "abandon_friend": error_tag.select("tr")[3]
                 .select("td")[1]
                 .text.strip(),
-                "put_into": error_tag.select("tr")[4].select("td")[1].text.strip(),
-                "agitate_witch": error_tag.select("tr")[5].select("td")[1].text.strip(),
+                "put_into": error_tag.select("tr")[4]
+                .select("td")[1]
+                .text.strip(),
+                "agitate_witch": error_tag.select("tr")[5]
+                .select("td")[1]
+                .text.strip(),
             }
             inf_avg_dict = {
-                "avg_smoker": inf_avg_tag.select("tr")[0].select("td")[1].text.strip(),
-                "avg_boomer": inf_avg_tag.select("tr")[1].select("td")[1].text.strip(),
-                "avg_hunter": inf_avg_tag.select("tr")[2].select("td")[1].text.strip(),
-                "avg_charger": inf_avg_tag.select("tr")[3].select("td")[1].text.strip(),
-                "avg_spitter": inf_avg_tag.select("tr")[4].select("td")[1].text.strip(),
-                "avg_jockey": inf_avg_tag.select("tr")[5].select("td")[1].text.strip(),
-                "avg_tank": inf_avg_tag.select("tr")[6].select("td")[1].text.strip(),
+                "avg_smoker": inf_avg_tag.select("tr")[0]
+                .select("td")[1]
+                .text.strip(),
+                "avg_boomer": inf_avg_tag.select("tr")[1]
+                .select("td")[1]
+                .text.strip(),
+                "avg_hunter": inf_avg_tag.select("tr")[2]
+                .select("td")[1]
+                .text.strip(),
+                "avg_charger": inf_avg_tag.select("tr")[3]
+                .select("td")[1]
+                .text.strip(),
+                "avg_spitter": inf_avg_tag.select("tr")[4]
+                .select("td")[1]
+                .text.strip(),
+                "avg_jockey": inf_avg_tag.select("tr")[5]
+                .select("td")[1]
+                .text.strip(),
+                "avg_tank": inf_avg_tag.select("tr")[6]
+                .select("td")[1]
+                .text.strip(),
             }
-            logger.info(sur_tag.select("tr"))
+            # logger.info(sur_tag.select("tr"))
             sur_dict = {
-                "map_clear": sur_tag.select("tr")[0].select("td")[1].text.strip(),
-                "prefect_into": sur_tag.select("tr")[1].select("td")[1].text.strip(),
-                "get_oil": sur_tag.select("tr")[2].select("td")[1].text.strip(),
-                "ammo_arrange": sur_tag.select("tr")[3].select("td")[1].text.strip(),
-                "adrenaline_give": sur_tag.select("tr")[4].select("td")[1].text.strip(),
-                "pills_give": sur_tag.select("tr")[5].select("td")[1].text.strip(),
-                "first_aid_give": sur_tag.select("tr")[6].select("td")[1].text.strip(),
-                "friend_up": sur_tag.select("tr")[7].select("td")[1].text.strip(),
-                "diss_friend": sur_tag.select("tr")[8].select("td")[1].text.strip(),
-                "save_friend": sur_tag.select("tr")[9].select("td")[1].text.strip(),
-                "protect_friend": sur_tag.select("tr")[10].select("td")[1].text.strip(),
+                "map_clear": sur_tag.select("tr")[0]
+                .select("td")[1]
+                .text.strip(),
+                "prefect_into": sur_tag.select("tr")[1]
+                .select("td")[1]
+                .text.strip(),
+                "get_oil": sur_tag.select("tr")[2]
+                .select("td")[1]
+                .text.strip(),
+                "ammo_arrange": sur_tag.select("tr")[3]
+                .select("td")[1]
+                .text.strip(),
+                "adrenaline_give": sur_tag.select("tr")[4]
+                .select("td")[1]
+                .text.strip(),
+                "pills_give": sur_tag.select("tr")[5]
+                .select("td")[1]
+                .text.strip(),
+                "first_aid_give": sur_tag.select("tr")[6]
+                .select("td")[1]
+                .text.strip(),
+                "friend_up": sur_tag.select("tr")[7]
+                .select("td")[1]
+                .text.strip(),
+                "diss_friend": sur_tag.select("tr")[8]
+                .select("td")[1]
+                .text.strip(),
+                "save_friend": sur_tag.select("tr")[9]
+                .select("td")[1]
+                .text.strip(),
+                "protect_friend": sur_tag.select("tr")[10]
+                .select("td")[1]
+                .text.strip(),
                 "pro_from_smoker": sur_tag.select("tr")[11]
                 .select("td")[1]
                 .text.strip(),
@@ -285,19 +343,35 @@ class L4D2Api:
                 "pro_from_jockey": sur_tag.select("tr")[14]
                 .select("td")[1]
                 .text.strip(),
-                "melee_charge": sur_tag.select("tr")[15].select("td")[1].text.strip(),
-                "tank_kill": sur_tag.select("tr")[16].select("td")[1].text.strip(),
+                "melee_charge": sur_tag.select("tr")[15]
+                .select("td")[1]
+                .text.strip(),
+                "tank_kill": sur_tag.select("tr")[16]
+                .select("td")[1]
+                .text.strip(),
                 "witch_instantly_kill": sur_tag.select("tr")[17]
                 .select("td")[1]
                 .text.strip(),
             }
             inf_dict = {
-                "sur_ace": inf_tag.select("tr")[0].select("td")[1].text.strip(),
-                "sur_down": inf_tag.select("tr")[1].select("td")[1].text.strip(),
-                "boommer_hit": inf_tag.select("tr")[2].select("td")[1].text.strip(),
-                "hunter_prefect": inf_tag.select("tr")[3].select("td")[1].text.strip(),
-                "hunter_success": inf_tag.select("tr")[4].select("td")[1].text.strip(),
-                "tank_damage": inf_tag.select("tr")[5].select("td")[1].text.strip(),
+                "sur_ace": inf_tag.select("tr")[0]
+                .select("td")[1]
+                .text.strip(),
+                "sur_down": inf_tag.select("tr")[1]
+                .select("td")[1]
+                .text.strip(),
+                "boommer_hit": inf_tag.select("tr")[2]
+                .select("td")[1]
+                .text.strip(),
+                "hunter_prefect": inf_tag.select("tr")[3]
+                .select("td")[1]
+                .text.strip(),
+                "hunter_success": inf_tag.select("tr")[4]
+                .select("td")[1]
+                .text.strip(),
+                "tank_damage": inf_tag.select("tr")[5]
+                .select("td")[1]
+                .text.strip(),
                 "charger_multiple": inf_tag.select("tr")[6]
                 .select("td")[1]
                 .text.strip(),

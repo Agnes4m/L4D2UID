@@ -4,10 +4,8 @@ from bs4 import BeautifulSoup
 
 resp = httpx.get(
     "https://sb.trygek.com/l4d_stats/ranking/player.php",
-    params={
-        "steamid": "STEAM_1:0:203395448"
-    }
-    )
+    params={"steamid": "STEAM_1:0:203395448"},
+)
 html_content = resp.content
 soup = BeautifulSoup(html_content, "lxml")
 
@@ -19,7 +17,7 @@ tbody = soup.find(
 # print(tbody)
 if tbody is not None:
     kill_tag = tbody.find(
-        name ="div",
+        name="div",
         class_="card-body worldmap d-flex flex-column justify-content-center text-center",
     )
     print(kill_tag)
@@ -49,25 +47,39 @@ if tbody is not None:
         "source": detail_tag.select("tr")[1].select("td")[1].text.strip(),
         "avg_source": detail_tag.select("tr")[2].select("td")[1].text.strip(),
         "kills": detail_tag.select("tr")[3].select("td")[1].text.strip(),
-        "kills_people": detail_tag.select("tr")[4].select("td")[1].text.strip(),
+        "kills_people": detail_tag.select("tr")[4]
+        .select("td")[1]
+        .text.strip(),
         "headshots": detail_tag.select("tr")[5].select("td")[1].text.strip(),
-        "avg_headshots": detail_tag.select("tr")[6].select("td")[1].text.strip(),
+        "avg_headshots": detail_tag.select("tr")[6]
+        .select("td")[1]
+        .text.strip(),
         "map_play": detail_tag.select("tr")[7].select("td")[1].text.strip(),
     }
     error_tag = {
-        "mistake_shout": error_tag.select("tr")[0].select("td")[1].text.strip(),
+        "mistake_shout": error_tag.select("tr")[0]
+        .select("td")[1]
+        .text.strip(),
         "kill_friend": error_tag.select("tr")[1].select("td")[1].text.strip(),
         "down_friend": error_tag.select("tr")[2].select("td")[1].text.strip(),
-        "abandon_friend": error_tag.select("tr")[3].select("td")[1].text.strip(),
+        "abandon_friend": error_tag.select("tr")[3]
+        .select("td")[1]
+        .text.strip(),
         "put_into": error_tag.select("tr")[4].select("td")[1].text.strip(),
-        "agitate_witch": error_tag.select("tr")[5].select("td")[1].text.strip(),
+        "agitate_witch": error_tag.select("tr")[5]
+        .select("td")[1]
+        .text.strip(),
     }
     inf_avg_dict = {
         "avg_smoker": inf_avg_tag.select("tr")[0].select("td")[1].text.strip(),
         "avg_boomer": inf_avg_tag.select("tr")[1].select("td")[1].text.strip(),
         "avg_hunter": inf_avg_tag.select("tr")[2].select("td")[1].text.strip(),
-        "avg_charger": inf_avg_tag.select("tr")[3].select("td")[1].text.strip(),
-        "avg_spitter": inf_avg_tag.select("tr")[4].select("td")[1].text.strip(),
+        "avg_charger": inf_avg_tag.select("tr")[3]
+        .select("td")[1]
+        .text.strip(),
+        "avg_spitter": inf_avg_tag.select("tr")[4]
+        .select("td")[1]
+        .text.strip(),
         "avg_jockey": inf_avg_tag.select("tr")[5].select("td")[1].text.strip(),
         "avg_tank": inf_avg_tag.select("tr")[6].select("td")[1].text.strip(),
     }
@@ -76,17 +88,29 @@ if tbody is not None:
         "prefect_into": sur_tag.select("tr")[1].select("td")[1].text.strip(),
         "get_oil": sur_tag.select("tr")[2].select("td")[1].text.strip(),
         "ammo_arrange": sur_tag.select("tr")[3].select("td")[1].text.strip(),
-        "adrenaline_give": sur_tag.select("tr")[4].select("td")[1].text.strip(),
+        "adrenaline_give": sur_tag.select("tr")[4]
+        .select("td")[1]
+        .text.strip(),
         "pills_give": sur_tag.select("tr")[5].select("td")[1].text.strip(),
         "first_aid_give": sur_tag.select("tr")[6].select("td")[1].text.strip(),
         "friend_up": sur_tag.select("tr")[7].select("td")[1].text.strip(),
         "diss_friend": sur_tag.select("tr")[8].select("td")[1].text.strip(),
         "save_friend": sur_tag.select("tr")[9].select("td")[1].text.strip(),
-        "protect_friend": sur_tag.select("tr")[10].select("td")[1].text.strip(),
-        "pro_from_smoker": sur_tag.select("tr")[11].select("td")[1].text.strip(),
-        "pro_from_hunter": sur_tag.select("tr")[12].select("td")[1].text.strip(),
-        "pro_from_charger": sur_tag.select("tr")[13].select("td")[1].text.strip(),
-        "pro_from_jockey": sur_tag.select("tr")[14].select("td")[1].text.strip(),
+        "protect_friend": sur_tag.select("tr")[10]
+        .select("td")[1]
+        .text.strip(),
+        "pro_from_smoker": sur_tag.select("tr")[11]
+        .select("td")[1]
+        .text.strip(),
+        "pro_from_hunter": sur_tag.select("tr")[12]
+        .select("td")[1]
+        .text.strip(),
+        "pro_from_charger": sur_tag.select("tr")[13]
+        .select("td")[1]
+        .text.strip(),
+        "pro_from_jockey": sur_tag.select("tr")[14]
+        .select("td")[1]
+        .text.strip(),
         "melee_charge": sur_tag.select("tr")[15].select("td")[1].text.strip(),
         "tank_kill": sur_tag.select("tr")[16].select("td")[1].text.strip(),
         "witch_instantly_kill": sur_tag.select("tr")[17]
@@ -100,7 +124,9 @@ if tbody is not None:
         "hunter_prefect": inf_tag.select("tr")[3].select("td")[1].text.strip(),
         "hunter_success": inf_tag.select("tr")[4].select("td")[1].text.strip(),
         "tank_damage": inf_tag.select("tr")[5].select("td")[1].text.strip(),
-        "charger_multiple": inf_tag.select("tr")[6].select("td")[1].text.strip(),
+        "charger_multiple": inf_tag.select("tr")[6]
+        .select("td")[1]
+        .text.strip(),
     }
 # info_dict = cast(AnnePlayerInfo, info_dict)
 # detail_dict = cast(AnnePlayerDetail, detail_tag)
@@ -118,5 +144,3 @@ if tbody is not None:
 #     "inf": inf_dict,
 #     "error": error_dict,
 # }
-
-

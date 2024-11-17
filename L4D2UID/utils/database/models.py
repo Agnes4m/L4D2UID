@@ -1,9 +1,9 @@
 from typing import Optional
 
+from sqlmodel import Field
 from gsuid_core.utils.database.startup import exec_list
 from gsuid_core.utils.database.base_models import Bind, User, with_session
-from gsuid_core.webconsole.mount_app import GsAdminModel, PageSchema, site
-from sqlmodel import Field
+from gsuid_core.webconsole.mount_app import PageSchema, GsAdminModel, site
 
 exec_list.extend(
     [
@@ -11,6 +11,7 @@ exec_list.extend(
         'ALTER TABLE L4D2Bind ADD COLUMN searchtype TEXT DEFAULT "云"',
     ]
 )
+
 
 class L4D2Bind(Bind, table=True):
     __table_args__ = {'extend_existing': True}
@@ -72,6 +73,7 @@ class L4D2Bind(Bind, table=True):
         data = await cls.select_data(user_id)
 
         return data.searchtype if data else None
+
 
 class L4D2User(User, table=True):
     __table_args__ = {'extend_existing': True}

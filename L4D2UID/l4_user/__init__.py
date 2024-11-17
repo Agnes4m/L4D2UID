@@ -78,7 +78,7 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                     -1: f"[L4] 该UID{uid}不在已绑定列表中！",
                 },
             )
-        
+
     else:
         if "绑定" in ev.command:
             if not uid:
@@ -86,7 +86,9 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                     "该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
                 )
             data = await L4D2Bind.switch_steam32(
-                qid, ev.bot_id, uid,
+                qid,
+                ev.bot_id,
+                uid,
             )
             return await send_diff_msg(
                 bot,
@@ -113,4 +115,4 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                     0: f"[L4] 删除UID{uid}成功！",
                     -1: f"[L4] 该UID{uid}不在已绑定列表中！",
                 },
-            )        
+            )
