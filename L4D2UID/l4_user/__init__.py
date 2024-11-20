@@ -116,3 +116,25 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                     -1: f"[L4] 该UID{uid}不在已绑定列表中！",
                 },
             )
+
+
+@l4_switch_paltform.on_command(
+    ('切换平台','切换'),
+    block=True,
+)
+async def send_l4_switch_paltform_msg(bot: Bot, ev: Event):
+    paltform = ev.text.strip()
+    logger.info(paltform)
+    bot_id = ev.bot_id
+    logger.info('[l4] 开始执行[切换平台]')
+    qid = ev.user_id
+    logger.info('[l4] [切换平台]UserID: {} - {}'.format(qid, paltform))
+
+    if "电信" in paltform or "云" in paltform:
+        await L4D2Bind.switch_searchtype(qid, bot_id, "云")
+        return await bot.send('[l4] 切换电信anne服务器成功！')
+    elif "呆" in paltform:
+        await L4D2Bind.switch_searchtype(qid, bot_id, "呆呆")
+        return await bot.send('[l4] 切换呆呆服务器成功！')
+    else:
+        return await bot.send('[l4] 平台错误！')

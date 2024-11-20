@@ -1,5 +1,6 @@
 # coding:utf-8
 from loguru import logger
+from .daidai import get_daidai_player_img
 from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
@@ -43,6 +44,14 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
         )
 
         await bot.send(out_msg)
+    elif tag == "呆呆":
+        out_msg = await get_daidai_player_img(
+            uid64, await get_avatar_with_ring(ev)
+        )
+        await bot.send(out_msg)
+    else:
+        return await bot.send(get_error(501))
+        
 
 
 @l4_user_info.on_command(("搜索"), block=True)

@@ -58,7 +58,7 @@ class L4D2Bind(Bind, table=True):
         bot_id,
         searchtype: str,
     ) -> int:
-        """更改steam32的参数值"""
+        """更改searchtype的参数值"""
 
         data = await cls.update_data(user_id, bot_id, searchtype=searchtype)
         return data

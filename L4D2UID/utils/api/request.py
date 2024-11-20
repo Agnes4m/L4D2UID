@@ -150,7 +150,7 @@ class L4D2Api:
             out_list: List[UserSearch] = []
 
             for tr in tr_list:
-                steamid = tr.get("onclick").split("steamid=")[-1][:1]
+                steamid = tr.get("onclick").split("steamid=")[-1].rstrip("'") 
                 td_list = tr.find_all("td")
                 logger.info(td_list)
                 search_info = {
