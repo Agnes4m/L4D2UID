@@ -1,4 +1,3 @@
-import random
 from pathlib import Path
 from typing import Union
 
@@ -27,6 +26,7 @@ async def get_daidai_player_img(
         return get_error(401)
 
     return await draw_daidai_player_img(detail, head_img)
+
 
 async def draw_daidai_player_img(detail: AnnePlayer2, head_img: Image.Image):
     if not detail:

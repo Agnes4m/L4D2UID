@@ -150,7 +150,7 @@ class L4D2Api:
             out_list: List[UserSearch] = []
 
             for tr in tr_list:
-                steamid = tr.get("onclick").split("steamid=")[-1].rstrip("'") 
+                steamid = tr.get("onclick").split("steamid=")[-1].rstrip("'")
                 td_list = tr.find_all("td")
                 logger.info(td_list)
                 search_info = {
@@ -186,6 +186,8 @@ class L4D2Api:
                 class_="content text-center text-md-left",
                 style="background-color: #f2f2f2;",
             )
+            if tkill is None:
+                return 523
             kill_tag = tkill.find(
                 "div",
                 class_=kill_class,

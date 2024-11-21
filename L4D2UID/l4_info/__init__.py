@@ -1,6 +1,5 @@
 # coding:utf-8
 from loguru import logger
-from .daidai import get_daidai_player_img
 from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
@@ -11,6 +10,7 @@ from gsuid_core.plugins.L4D2UID.L4D2UID.l4_info.anne import (
 )
 
 from ..utils.error_reply import get_error
+from .daidai import get_daidai_player_img
 from ..utils.database.models import L4D2Bind
 
 l4_user_info = SV("L4D2用户信息查询")
@@ -51,7 +51,6 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
         await bot.send(out_msg)
     else:
         return await bot.send(get_error(501))
-        
 
 
 @l4_user_info.on_command(("搜索"), block=True)

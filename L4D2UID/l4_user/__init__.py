@@ -119,7 +119,7 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
 
 
 @l4_switch_paltform.on_command(
-    ('切换平台','切换'),
+    ('切换平台', '切换'),
     block=True,
 )
 async def send_l4_switch_paltform_msg(bot: Bot, ev: Event):
