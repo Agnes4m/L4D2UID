@@ -10,6 +10,7 @@ exec_list.extend(
     [
         'ALTER TABLE L4D2Bind ADD COLUMN steam32 TEXT DEFAULT ""',
         'ALTER TABLE L4D2Bind ADD COLUMN searchtype TEXT DEFAULT "云"',
+        'ALTER TABLE L4D2Bind ADD COLUMN name TEXT DEFAULT ""',
     ]
 )
 
@@ -19,6 +20,7 @@ class L4D2Bind(Bind, table=True):
     uid: Optional[str] = Field(default=None, title="L4D2UID")
     steam32: Optional[str] = Field(default="", title="steam64")
     searchtype: str = Field(default="云", title="搜索类型")
+    name: str = Field(default="", title="昵称")
 
     @classmethod
     @with_session
@@ -48,6 +50,35 @@ class L4D2Bind(Bind, table=True):
         data = await cls.select_data(user_id)
 
         return data.steam32 if data else None
+
+    @classmethod
+    @with_session
+    async def switch_name(
+        cls,
+        session,
+        user_id: str,
+        bot_id,
+        name: str,
+    ) -> int:
+        """更改steam32的参数值"""
+        try:
+            data = await cls.insert_data(user_id, bot_id, name=name)
+        except Exception as e:
+            logger.error(e)
+            data = await cls.update_data(user_id, bot_id, name=name)
+        return data
+
+    @classmethod
+    @with_session
+    async def get_name(
+        cls,
+        session,
+        user_id: str,
+    ):
+        """获取steam32的参数值"""
+        data = await cls.select_data(user_id)
+
+        return data.name if data else None
 
     @classmethod
     @with_session

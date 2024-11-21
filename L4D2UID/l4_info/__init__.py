@@ -30,24 +30,34 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
     if tag is None or not tag:
         tag = "云"
     logger.info(f"[l4]正在查询服务器{tag}")
-    uid64 = await L4D2Bind.get_steam32(user_id)
-    logger.info(f"[l4]服务器{tag}的uid64为{uid64}")
-    if arg:
-        uid64 = arg
-    elif uid64 and not arg:
-        pass
-    else:
-        return await bot.send(get_error(-51))
+
     if tag == "云":
+        uid32 = await L4D2Bind.get_steam32(user_id)
+        logger.info(f"[l4]服务器{tag}的uid32为{uid32}")
+        if arg:
+            uid32 = arg
+        elif uid32 and not arg:
+            pass
+        else:
+            return await bot.send(get_error(-51))
         out_msg = await get_anne_player_img(
-            uid64, await get_avatar_with_ring(ev)
+            uid32, await get_avatar_with_ring(ev)
         )
 
         await bot.send(out_msg)
     elif tag == "呆呆":
-        out_msg = await get_daidai_player_img(
-            uid64, await get_avatar_with_ring(ev)
-        )
+        uid32 = await L4D2Bind.get_steam32(user_id)
+        user_name = await L4D2Bind.get_name(user_id)
+        logger.info(f"[l4]服务器{tag}的uid32为{uid32}")
+        if arg:
+            uid32 = arg
+        elif uid32 and not arg:
+            pass
+        elif not uid32 and user_name and not arg:
+            uid32 = user_name
+        else:
+            return await bot.send(get_error(-51))
+        out_msg = await get_daidai_player_img(uid32)
         await bot.send(out_msg)
     else:
         return await bot.send(get_error(501))

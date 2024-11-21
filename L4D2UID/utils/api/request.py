@@ -1,5 +1,6 @@
 import random
 import json as js
+from pathlib import Path
 from copy import deepcopy
 from typing import Any, Dict, List, Union, Literal, Optional, cast
 
@@ -9,7 +10,7 @@ from httpx import AsyncClient
 from gsuid_core.logger import logger
 
 from ..database.models import L4D2User
-from .api import ANNERANKAPI, ANNEPLAYERAPI, ANNESEARCHAPI
+from .api import ANNERANKAPI, ANNEPLAYERAPI, ANNESEARCHAPI, DAIDAIPLAYERAPI
 from .models import (
     UserSearch,
     AnnePlayer2,
@@ -408,3 +409,19 @@ class L4D2Api:
             }
 
             return cast(AnnePlayer2, out_dict)
+
+    async def get_daidai_player_info(self, steam_id: str, name: str = ""):
+        data = await self._l4_request(
+            DAIDAIPLAYERAPI,
+            params={"steamid": steam_id},
+            out_type="html",
+        )
+        if isinstance(data, int):
+            return data
+        if isinstance(data, bytes):
+            html_content = data
+            html = html_content.decode("utf-8")
+            with open(
+                Path(__file__).joinpath("soup.html"), "w", encoding="utf-8"
+            ) as f:
+                f.write(html)

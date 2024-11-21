@@ -1,34 +1,39 @@
 from pathlib import Path
 from typing import Union
 
-from PIL import Image, ImageDraw
-from gsuid_core.logger import logger
-from gsuid_core.utils.image.convert import convert_img
-from gsuid_core.utils.image.image_tools import easy_paste, draw_pic_with_ring
-
-from ..utils.l4_api import l4_api
-from ..utils.error_reply import get_error
-from ..utils.api.models import AnnePlayer2
-from ..utils.l4_font import l4_font_20, l4_font_26, l4_font_30, l4_font_40
+from gsuid_core.data_store import get_res_path
+from playwright.async_api import async_playwright
+from gsuid_core.plugins.L4D2UID.L4D2UID.utils.api.api import DAIDAIPLAYERAPI
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
+L4PATH = get_res_path("L4D2UID")
 
 
 async def get_daidai_player_img(
-    keyword: str, head_img: Image.Image
+    keyword: str,
 ) -> Union[str, bytes]:
-    detail = await l4_api.play_info(keyword)
 
-    logger.info(detail)
-    if isinstance(detail, int):
-        return get_error(detail)
-    if detail is None:
-        return get_error(401)
-
-    return await draw_daidai_player_img(detail, head_img)
+    return await main(keyword)
 
 
-async def draw_daidai_player_img(detail: AnnePlayer2, head_img: Image.Image):
-    if not detail:
-        return get_error(1001)
-    return "test success"
+async def main(name: str):
+    # 使用 Playwright 渲染 HTML
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        await page.goto(f'{DAIDAIPLAYERAPI}{name}')
+
+        # 设置视口
+        await page.set_viewport_size(
+            {"width": 900, "height": 1200}
+        )
+
+        # rendered_html = await page.content()
+        # print(rendered_html)
+
+        new_path = L4PATH.joinpath("CS2UID/name.png")
+        await page.screenshot(path=new_path)  # 保存为图片
+        await browser.close()  # 关闭浏览器
+    with open(new_path, "rb") as f:
+        img = f.read()
+    return img
