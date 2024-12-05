@@ -46,7 +46,7 @@ async def get_anne_player_img(
 
 
 async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
-    if not detail:
+    if len(detail) == 0:
         return get_error(1001)
 
     bg_path = list((TEXTURED / "bg").glob('*.png'))

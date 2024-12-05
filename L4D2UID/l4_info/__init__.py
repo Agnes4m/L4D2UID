@@ -33,18 +33,18 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
 
     if tag == "云":
         uid32 = await L4D2Bind.get_steam32(user_id)
-        logger.info(f"[l4]服务器{tag}的uid32为{uid32}")
-        if arg:
-            uid32 = arg
-        elif uid32 and not arg:
-            pass
-        else:
-            return await bot.send(get_error(-51))
-        out_msg = await get_anne_player_img(
-            uid32, await get_avatar_with_ring(ev)
-        )
-
-        await bot.send(out_msg)
+        if uid32:
+            logger.info(f"[l4]服务器{tag}的uid32为{uid32}")
+            if arg:
+                uid32 = arg
+            elif uid32 and not arg:
+                pass
+            else:
+                return await bot.send(get_error(-51))
+            out_msg = await get_anne_player_img(
+                uid32, await get_avatar_with_ring(ev)
+            )
+           
     elif tag == "呆呆":
         uid32 = await L4D2Bind.get_steam32(user_id)
         user_name = await L4D2Bind.get_name(user_id)
