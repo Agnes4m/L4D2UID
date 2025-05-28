@@ -50,7 +50,6 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
         return get_error(1001)
 
     bg_path = list((TEXTURED / "bg").glob('*.png'))
-    logger.info(bg_path)
     if bg_path:
         img = Image.open(random.choice(bg_path))
     else:

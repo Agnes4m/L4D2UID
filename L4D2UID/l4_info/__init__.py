@@ -44,6 +44,7 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
             out_msg = await get_anne_player_img(
                 uid32, await get_avatar_with_ring(ev)
             )
+        await bot.send(out_msg)
            
     elif tag == "呆呆":
         uid32 = await L4D2Bind.get_steam32(user_id)
