@@ -141,8 +141,6 @@ class L4D2Api:
         if isinstance(data, bytes):
             html_content = data
             soup = BeautifulSoup(html_content, "lxml")
-            with open("/home/ubuntu/soup.html", "w", encoding="utf-8") as f:
-                f.write(str(soup))
             tbody = soup.find("tbody")
             tr_list = tbody.find_all("tr")
             if not tr_list:

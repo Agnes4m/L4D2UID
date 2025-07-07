@@ -27,8 +27,10 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
 
     # 判断服务器类型
     tag = await L4D2Bind.get_searchtype(user_id)
+    logger.info(f"[l4]查询服务器{tag}用户{user_id}")
     if tag is None or not tag:
         tag = "云"
+
     logger.info(f"[l4]正在查询服务器{tag}")
 
     if tag == "云":
@@ -44,8 +46,9 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
             out_msg = await get_anne_player_img(
                 uid32, await get_avatar_with_ring(ev)
             )
-        await bot.send(out_msg)
-           
+            await bot.send(out_msg)
+        await bot.send(get_error(302))
+
     elif tag == "呆呆":
         uid32 = await L4D2Bind.get_steam32(user_id)
         user_name = await L4D2Bind.get_name(user_id)
