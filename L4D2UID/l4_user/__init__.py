@@ -75,7 +75,6 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
             else:
                 return await bot.send(f"[L4] 尚未绑定该UID{uid}")
 
-
     elif uid.isdigit() and len(uid) == 17:
         # 64位
         if "绑定" in ev.command:
