@@ -24,9 +24,7 @@ async def main(name: str):
         await page.goto(f'{DAIDAIPLAYERAPI}{name}')
 
         # 设置视口
-        await page.set_viewport_size(
-            {"width": 900, "height": 1200}
-        )
+        await page.set_viewport_size({"width": 900, "height": 1200})
 
         # rendered_html = await page.content()
         # print(rendered_html)
