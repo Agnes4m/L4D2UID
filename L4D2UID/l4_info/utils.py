@@ -1,7 +1,7 @@
 from typing import Tuple, Union, Optional
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from gsuid_core.logger import logger
 from gsuid_core.data_store import get_res_path
@@ -9,6 +9,7 @@ from gsuid_core.utils.image.utils import download_pic_to_image
 from gsuid_core.utils.image.image_tools import draw_text_by_line
 
 from ..utils.l4_font import l4_font_20, l4_font_32
+from .pil_enhance import Colors, draw_text_with_shadow, draw_divider_line
 
 TEXTURE = Path(__file__).parent / "texture2d"
 
@@ -16,6 +17,19 @@ TEXTURE = Path(__file__).parent / "texture2d"
 ICON_PATH = Path(__file__).parent / "texture2d/icon"
 font_head = l4_font_20
 font_main = l4_font_32
+
+# 图片缓存
+_image_cache: dict[Path, Image.Image] = {}
+
+
+def _load_cached_image(path: Path) -> Image.Image:
+    """加载缓存的图片，避免重复打开文件"""
+    if path not in _image_cache:
+        img = Image.open(path)
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+        _image_cache[path] = img
+    return _image_cache[path].copy()
 
 
 async def save_img(img_url: str, img_type: str, size: Optional[Tuple[int, int]] = None):
@@ -43,7 +57,7 @@ async def save_img(img_url: str, img_type: str, size: Optional[Tuple[int, int]] 
         if map_img.mode != "RGBA":
             map_img = map_img.convert("RGBA")
     if size:
-        map_img.resize(size)
+        map_img = map_img.resize(size)
     return map_img
 
 
@@ -58,12 +72,10 @@ def paste_img(
     color: Union[Tuple[int, int, int, int], str] = (0, 0, 0, 255),
     is_white: bool = True,
 ):
-    """贴文字"""
-    # 字体
-    if fonts == "head":
-        font = font_head
-    else:
-        font = font_main
+    """贴文字 - 现代化版本（含圆角背景和阴影）"""
+    # 字体选择
+    font = font_head if fonts == "head" else font_main
+
     # 计算文字位置
     aa, ab, ba, bb = font.getbbox(msg)
     if is_mid:
@@ -71,21 +83,46 @@ def paste_img(
     else:
         site_x = site[0]
 
-    # 绘制白色矩形遮罩
-    s = 160 if is_white else 0
-    rect_color = (255, 255, 255, 128)
-    site_white = (
-        site_x + aa - 5,
-        site[1] + ab,
-        site_x + ba + 5,
-        site[1] + bb + 7,
-    )
-    mask = Image.new("RGBA", (int(ba - aa + 5), int(bb - ab + 5)), (255, 255, 255, s))
-    draw_mask = ImageDraw.Draw(mask)
-    draw_mask.rectangle(site_white, fill=rect_color)
+    # 背景透明度
+    bg_opacity = 160 if is_white else 0
 
-    draw_mask.text(xy=(0, 0), text=msg, font=font, fill=color)
-    img.paste(mask, site, mask)
+    # 创建遮罩层（带圆角背景和阴影）
+    mask_width = int(ba - aa + 10)
+    mask_height = int(bb - ab + 10)
+    mask = Image.new("RGBA", (mask_width, mask_height), (0, 0, 0, 0))
+    draw_mask = ImageDraw.Draw(mask)
+
+    # 绘制圆角背景矩形（现代化设计）
+    bg_color = (255, 255, 255, bg_opacity)
+    draw_mask.rounded_rectangle(
+        [0, 0, mask_width - 1, mask_height - 1],
+        radius=5,
+        fill=bg_color,
+        outline=(200, 200, 200, 100),
+        width=1
+    )
+
+    # 转换颜色格式
+    if isinstance(color, str):
+        color_rgba = color
+    else:
+        color_rgba = color if len(color) == 4 else color + (255,)
+
+    # 绘制带阴影的文字
+    text_x = 5 - aa
+    text_y = 5 - ab
+    draw_text_with_shadow(
+        draw_mask,
+        msg,
+        (text_x, text_y),
+        font,
+        fill=color_rgba if isinstance(color_rgba, tuple) and len(color_rgba) == 4 else Colors.TEXT_DARK + (255,),
+        shadow_offset=(1, 1),
+        shadow_color=(0, 0, 0, 80)
+    )
+
+    # 粘贴到主图片
+    img.paste(mask, (site_x, site[1]), mask)
 
 
 def simple_paste_img(
@@ -100,18 +137,10 @@ def simple_paste_img(
     line_space: Optional[float] = None,
 ):
     """无白框贴文字"""
-    if size == 20:
-        if fonts == "head":
-            font = font_head
-        else:
-            font = font_main
-    else:
-        if fonts == "head":
-            font = font_head
-        else:
-            font = font_main
-    draw = ImageDraw.Draw(img)
-    draw.text(site, msg, fill=color, font=font)
+    # 选择字体（统一使用预加载字体）
+    font = font_head if fonts == "head" else font_main
+
+    # 使用 draw_text_by_line 绘制（已包含基础文本和换行处理）
     draw_text_by_line(
         img=img,
         pos=site,
@@ -147,8 +176,8 @@ def load_groudback(bg_img_path: Path | Image.Image, alpha_percent: float = 0.5):
 
 def percent_to_img(percent: float, size: tuple = (211, 46)):
     """由百分比转化为图"""
-    img_none = Image.open(ICON_PATH / "none.png")
-    img_yellow = Image.open(ICON_PATH / "yellow.png")
+    img_none = _load_cached_image(ICON_PATH / "none.png")
+    img_yellow = _load_cached_image(ICON_PATH / "yellow.png")
     img_out = Image.new("RGBA", (211, 46), (0, 0, 0, 0))
 
     for i in range(10):

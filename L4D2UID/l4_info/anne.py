@@ -8,6 +8,7 @@ from gsuid_core.logger import logger
 from gsuid_core.utils.image.convert import convert_img
 from gsuid_core.utils.image.image_tools import easy_paste, draw_pic_with_ring
 
+from .pil_enhance import Colors, draw_text_with_shadow
 from ..utils.l4_api import l4_api
 from ..utils.l4_font import l4_font_20, l4_font_26, l4_font_30, l4_font_40
 from ..utils.api.models import AnnePlayer2
@@ -15,10 +16,23 @@ from ..utils.error_reply import get_error
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
+# 图片缓存
+_image_cache: dict[Path, Image.Image] = {}
+
+
+def _load_image(path: Path) -> Image.Image:
+    """加载并缓存图片"""
+    if path not in _image_cache:
+        img = Image.open(path)
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+        _image_cache[path] = img
+    return _image_cache[path].copy()
+
 
 def draw_title_section(img: Image.Image, title: str, y_pos: int) -> None:
     """绘制标题栏"""
-    title_img = Image.open(TEXTURED / "title_bg.png").resize((900, 100))
+    title_img = _load_image(TEXTURED / "title_bg.png").resize((900, 100))
     title_img_draw = ImageDraw.Draw(title_img)
     title_img_draw.text((50, 30), title, "white", font=l4_font_30)
     easy_paste(img, title_img, (0, y_pos))
@@ -32,8 +46,20 @@ def draw_data_row(
     font=l4_font_30,
     color: str = "white",
 ) -> None:
-    """绘制单行数据"""
-    draw.text((x, y), text, color, font=font)
+    """绘制单行数据 - 现代化版本（含阴影）"""
+    # 转换颜色
+    color_rgba = color if isinstance(color, tuple) else Colors.TEXT_LIGHT
+
+    # 绘制带阴影的文字
+    draw_text_with_shadow(
+        draw,
+        text,
+        (x, y),
+        font,
+        fill=color_rgba + (255,) if isinstance(color_rgba, tuple) and len(color_rgba) == 3 else color_rgba,
+        shadow_offset=(2, 2),
+        shadow_color=(0, 0, 0, 120),
+    )
 
 
 async def get_anne_search_img(keyword: str) -> str:
@@ -75,16 +101,16 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
         raise FileNotFoundError("没有找到背景图像文件。")
 
     # 开头内容
-    title_img = Image.open(TEXTURED / "title_bg.png").resize((900, 100))
+    title_img = _load_image(TEXTURED / "title_bg.png").resize((900, 100))
     title_img_draw = ImageDraw.Draw(title_img)
     title_img_draw.text((220, 20), "求生之路-anne电信服查询", "white", font=l4_font_40)
     easy_paste(img, title_img, (0, 0))
 
     easy_paste(img, head_img.resize((100, 100)), (100, 180), direction="cc")
 
-    title = Image.open(TEXTURED / "title.png").resize((530, 190))
+    title = _load_image(TEXTURED / "title.png").resize((530, 190))
     title_draw = ImageDraw.Draw(title)
-    line = Image.open(TEXTURED / "line.png")
+    line = _load_image(TEXTURED / "line.png")
     easy_paste(title, line, (30, 20))
     logger.info(detail["info"]["avatar"])
 
@@ -115,14 +141,14 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
 
     easy_paste(img, title, (180, 110))
 
-    anne_head = Image.open(TEXTURED / "anne_head.jpg").resize((100, 100))
+    anne_head = _load_image(TEXTURED / "anne_head.jpg").resize((100, 100))
     anne_img = await draw_pic_with_ring(anne_head, 100)
     easy_paste(img, anne_img, (800, 180), direction="cc")
 
     # 基础数据
     draw_title_section(img, "基础信息", 320)
 
-    base_img = Image.open(TEXTURED / "base1.png").resize((800, 200))
+    base_img = _load_image(TEXTURED / "base1.png").resize((800, 200))
     base_draw = ImageDraw.Draw(base_img)
     draw_data_row(base_draw, f"分数: {detail['detail']['source']}", 40, 20)
     draw_data_row(base_draw, f"击杀: {detail['detail']['kills']}", 40, 80)
@@ -140,7 +166,7 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
     # 黑枪数据
     draw_title_section(img, "黑枪数据", 655)
 
-    base_img = Image.open(TEXTURED / "base2.png").resize((800, 140))
+    base_img = _load_image(TEXTURED / "base2.png").resize((800, 140))
     base_draw = ImageDraw.Draw(base_img)
     draw_data_row(base_draw, f"黑枪次数: {detail['error']['mistake_shout']}", 40, 20)
     draw_data_row(base_draw, f"击倒队友: {detail['error']['down_friend']}", 40, 80)
@@ -151,7 +177,7 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
     # 其他数据
     draw_title_section(img, "其他数据", 930)
 
-    base_img = Image.open(TEXTURED / "base3.png").resize((800, 200))
+    base_img = _load_image(TEXTURED / "base3.png").resize((800, 200))
     base_draw = ImageDraw.Draw(base_img)
     draw_data_row(base_draw, f"药丸赠与: {detail['sur']['pills_give']}", 40, 20)
     draw_data_row(base_draw, f"保护队友: {detail['sur']['protect_friend']}", 40, 80)
