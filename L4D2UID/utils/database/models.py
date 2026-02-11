@@ -1,10 +1,11 @@
 from typing import Optional
 
 from sqlmodel import Field
+
 from gsuid_core.logger import logger
+from gsuid_core.webconsole.mount_app import PageSchema, GsAdminModel, site
 from gsuid_core.utils.database.startup import exec_list
 from gsuid_core.utils.database.base_models import Bind, User, with_session
-from gsuid_core.webconsole.mount_app import PageSchema, GsAdminModel, site
 
 exec_list.extend(
     [
@@ -16,7 +17,7 @@ exec_list.extend(
 
 
 class L4D2Bind(Bind, table=True):
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True}
     uid: Optional[str] = Field(default=None, title="L4D2UID")
     steam32: Optional[str] = Field(default="", title="steam64")
     searchtype: str = Field(default="云", title="搜索类型")
@@ -60,7 +61,7 @@ class L4D2Bind(Bind, table=True):
         bot_id,
         name: str,
     ) -> int:
-        """更改steam32的参数值"""
+        """更改昵称的参数值"""
         try:
             data = await cls.insert_data(user_id, bot_id, name=name)
         except Exception as e:
@@ -108,7 +109,7 @@ class L4D2Bind(Bind, table=True):
 
 
 class L4D2User(User, table=True):
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True}
     uid: Optional[str] = Field(default=None, title="L4D2UID")
 
 

@@ -1,8 +1,8 @@
 # from typing import Dict
 
 # from gsuid_core.message_models import Button
-from gsuid_core.logger import logger
 from gsuid_core.sv import SV, Bot, Event
+from gsuid_core.logger import logger
 from gsuid_core.utils.message import send_diff_msg
 
 from ..utils.database.models import L4D2Bind
@@ -35,17 +35,13 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
     qid = ev.user_id
     await bot.logger.info("[L4] [绑定/解绑]UserID: {}".format(qid))
     if not uid:
-        return await bot.send(
-            "该命令需要带上正确的uid!(steam32位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
-        )
+        return await bot.send("该命令需要带上正确的uid!(steam32位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
     elif not uid.isdigit() and ":" in uid:
         # 32位uid
 
         if "绑定" in ev.command:
             if not uid:
-                return await bot.send(
-                    "该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
-                )
+                return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
             data = await L4D2Bind.switch_steam32(
                 qid,
                 ev.bot_id,
@@ -79,13 +75,9 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
         # 64位
         if "绑定" in ev.command:
             if not uid:
-                return await bot.send(
-                    "该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
-                )
+                return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
 
-            data = await L4D2Bind.insert_uid(
-                qid, ev.bot_id, uid, ev.group_id, is_digit=False
-            )
+            data = await L4D2Bind.insert_uid(qid, ev.bot_id, uid, ev.group_id, is_digit=False)
             return await send_diff_msg(
                 bot,
                 data,
@@ -133,13 +125,16 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                 },
             )
         elif "切换" in ev.command:
-            retcode = await L4D2Bind.swit(qid, ev.bot_id, uid)
+            retcode = await L4D2Bind.switch_name(qid, ev.bot_id, uid)
             if retcode == 0:
                 return await bot.send(f"[L4] 切换UID{uid}成功！")
             else:
                 return await bot.send(f"[L4] 尚未绑定该UID{uid}")
         else:
-            data = await L4D2Bind.swit(qid, ev.bot_id, "")
+            data = await L4D2Bind.delete_data(
+                qid,
+                ev.bot_id,
+            )
             return await send_diff_msg(
                 bot,
                 data,
@@ -151,22 +146,22 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
 
 
 @l4_user_bind.on_command(
-    ('切换'),
+    ("切换"),
     block=True,
 )
 async def send_l4_switch_paltform_msg(bot: Bot, ev: Event):
     paltform = ev.text.strip()
     logger.info(paltform)
     bot_id = ev.bot_id
-    logger.info('[l4] 开始执行[切换平台]')
+    logger.info("[l4] 开始执行[切换平台]")
     qid = ev.user_id
-    logger.info('[l4] [切换平台]UserID: {} - {}'.format(qid, paltform))
+    logger.info("[l4] [切换平台]UserID: {} - {}".format(qid, paltform))
 
     if "电信" in paltform or "云" in paltform:
         await L4D2Bind.switch_searchtype(qid, bot_id, "云")
-        return await bot.send('[l4] 切换电信anne服务器成功！')
+        return await bot.send("[l4] 切换电信anne服务器成功！")
     elif "呆" in paltform:
         await L4D2Bind.switch_searchtype(qid, bot_id, "呆呆")
-        return await bot.send('[l4] 切换呆呆服务器成功！')
+        return await bot.send("[l4] 切换呆呆服务器成功！")
     else:
-        return await bot.send('[l4] 平台错误！')
+        return await bot.send("[l4] 平台错误！")

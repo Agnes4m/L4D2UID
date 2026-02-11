@@ -3,9 +3,9 @@
     "desc": "需要先绑定uid",
     "data": [
       {
-        "name": "绑定uid",
+        "name": "绑定",
         "desc": "绑定你的steam UID",
-        "eg": "绑定uid 123456",
+        "eg": "绑定 STEAM_1:1xxx",
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
@@ -13,7 +13,7 @@
       {
         "name": "删除uid",
         "desc": "删除你的steam UID",
-        "eg": "删除uid 123456",
+        "eg": "删除STEAM_1:1xxx",
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
@@ -21,7 +21,7 @@
       {
         "name": "切换uid",
         "desc": "切换你的steam UID",
-        "eg": "切换uid123456",
+        "eg": "切换STEAM_1:1xxx",
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
@@ -29,47 +29,13 @@
     ]
   },
   "电信anne服功能": {
-    "desc": "默认查完美绑定战绩，也可以后带uid",
+    "desc": "默认查绑定战绩，也可以后带uid",
     "data": [
       {
         "name": "查询(anne)",
-        "desc": "查询cs完美平台数据一览",
+        "desc": "查询数据一览",
         "eg": "查询",
         "need_ck": true,
-        "need_sk": false,
-        "need_admin": false
-      }
-    ]
-  },
-  "5E平台查询": {
-    "desc": "查5E平台绑定战绩，也可以后带uid",
-    "data": [
-      {
-        "name": "查询5e",
-        "desc": "查询cs 5e平台数据一览",
-        "eg": "查询5e",
-        "need_ck": false,
-        "need_sk": true,
-        "need_admin": false
-      },
-      {
-        "name": "搜索5e",
-        "desc": "搜索cs 5e平台用户信息",
-        "eg": "查询5e",
-        "need_ck": false,
-        "need_sk": true,
-        "need_admin": false
-      }
-    ]
-  },
-  "攻略服务": {
-    "desc": "游戏攻略相关查询",
-    "data": [
-      {
-        "name": "道具",
-        "desc": "查询道具攻略",
-        "eg": "道具沙2 匪家 A大 过点烟",
-        "need_ck": false,
         "need_sk": false,
         "need_admin": false
       }
@@ -85,51 +51,6 @@
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
-      },
-      {
-        "name": "搜索",
-        "desc": "通过完美平台名字或steamid搜索用户",
-        "eg": "搜索爱丽数码",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": false
-      }
-    ]
-  },
-  "管理员功能": {
-    "desc": "游戏攻略相关查询",
-    "data": [
-      {
-        "name": "下载全部资源",
-        "desc": "下载完整资源(非必要)",
-        "eg": "下载全部资源",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": true
-      },
-      {
-        "name": "添加uid",
-        "desc": "作为完美数据请求的uid",
-        "eg": "添加uid 123456",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": true
-      },
-      {
-        "name": "添加tk",
-        "desc": "作为完美数据请求的token",
-        "eg": "添加tk abcd5epio",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": true
-      },
-      {
-        "name": "添加sk",
-        "desc": "作为5e数据请求的token",
-        "eg": "添加sk abcd5epio",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": true
       }
     ]
   }

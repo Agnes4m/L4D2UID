@@ -1,9 +1,10 @@
+import json
 from typing import Dict
 from pathlib import Path
 
 import aiofiles
 from PIL import Image
-from msgspec import json as msgjson
+
 from gsuid_core.sv import get_plugin_prefix
 from gsuid_core.help.model import PluginHelp
 from gsuid_core.help.draw_new_plugin_help import get_new_help
@@ -24,7 +25,7 @@ def get_footer():
 
 async def get_help_data() -> Dict[str, PluginHelp]:
     async with aiofiles.open(HELP_DATA, "rb") as file:
-        return msgjson.decode(await file.read(), type=Dict[str, PluginHelp])
+        return json.loads(await file.read())
 
 
 async def get_help():
@@ -34,14 +35,14 @@ async def get_help():
         plugin_icon=Image.open(ICON),
         plugin_help=await get_help_data(),
         plugin_prefix=PREFIX,
-        help_mode="light",
+        help_mode="dark",
         banner_bg=Image.open(
             TEXT_PATH / "banner_bg.jpg",
         ),
         banner_sub_text="求生之路2真好玩!",
         help_bg=Image.open(TEXT_PATH / "bg.jpg"),
         cag_bg=Image.open(TEXT_PATH / "cag_bg.png"),
-        item_bg=Image.open(TEXT_PATH / "item.png"),
+        # item_bg=Image.open(TEXT_PATH / "item.png"),
         icon_path=ICON_PATH,
         footer=get_footer(),
         enable_cache=True,

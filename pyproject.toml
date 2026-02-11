@@ -21,9 +21,19 @@ asyncio_mode = "auto"
 requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
 
+[project]
+authors = [
+    {name = "Agnes Digital", email = "Z735803792@163.com"}
+]
+name = "L4D2UID"
+version = "0.2.0"
+
+description = "基于gsuid-core, 支持NoneBot2 & HoshinoBot & ZeroBot & YunzaiBot的全功能某FPS游戏Bot插件"
+dependencies = []
+
 [tool.poetry]
 name = "L4D2UID"
-version = "0.0.1"
+version = "0.2.0"
 description = "基于gsuid-core, 支持NoneBot2 & HoshinoBot & ZeroBot & YunzaiBot的全功能某FPS游戏Bot插件"
 authors = ["Agnes Digital <Z735803792@163.com>"]
 license = "GPL-3.0-or-later"
@@ -51,6 +61,20 @@ isort = "^5.12.0"
 pre-commit = "^2.21.0"
 pycln = "^2.1.2"
 
-[tool.poetry.group.test.dependencies]
-pytest = "^7.2.0"
-pytest-asyncio = "^0.20.3"
+[tool.pdm.scripts]
+core = "gsuid_core/core.py"
+
+[tool.pdm.dev-dependencies]
+dev = ["ruff>=0.14.7", "pre-commit>=2.21.0"]
+
+[tool.pdm.build]
+includes = ["gsuid_core"]
+
+[dependency-groups]
+dev = ["ruff>=0.14.7", "pre-commit>=2.21.0"]
+
+[tool.uv]
+default-groups = []
+
+[tool.pdm.resolution]
+respect-source-order = true
