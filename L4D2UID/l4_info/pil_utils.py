@@ -492,7 +492,6 @@ def draw_stat_card(
     value_w = value_bbox[2] - value_bbox[0]
     value_x = x + (w - value_w) // 2
     value_y = y + h - 75
-    logger.info(f"[stat_card_value] {label}={value}, position=({value_x}, {value_y})")
     draw.text((value_x, value_y), value, font=stat_font, fill=value_color)
 
 

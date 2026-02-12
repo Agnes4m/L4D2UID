@@ -37,7 +37,7 @@
 
 ### 电信anne服数据查询
 
-- l4绑定 [steamid32] - 求生之路内控制台输入`status`即可看
+- l4绑定 [steamid32] - 求生之路内控制台输入`status`即可看,或使用搜索指令
 - l4查询 [SteamID] - 查询电信anne服数据
 - l4搜索 [SteamID] - 查询电信anne服数据
 
@@ -48,4 +48,5 @@
 ## 丨其他
 
 - 本项目仅供学习使用，请勿用于商业用途
+- 游戏相关问题加Q群：883237206
 - [GPL-3.0 License](https://github.com/Agnes4m/L4D2UID/blob/master/LICENSE)

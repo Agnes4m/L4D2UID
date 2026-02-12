@@ -1,3 +1,4 @@
+import re
 import random
 from typing import Union
 from pathlib import Path
@@ -59,11 +60,35 @@ def _extract_player_stats(detail: AnnePlayer2) -> dict:
     Returns:
         处理后的玩家统计字典
     """
+    source_raw = detail["detail"].get("source", 0)
+    playtime_str = detail["info"].get("playtime", "--")
+    ppm = "--"
+
+    try:
+        if isinstance(source_raw, str):
+            source_num = float(source_raw.replace(",", ""))
+        else:
+            source_num = float(source_raw)
+
+        if source_num > 0:
+            match = re.search(r"\((\d+(?:,\d+)*)\s*分钟\)", playtime_str)
+            if match:
+                minutes_str = match.group(1).replace(",", "")
+                try:
+                    minutes = int(minutes_str)
+                    if minutes > 0:
+                        ppm = f"{source_num / minutes:.2f}"
+                except ValueError:
+                    pass
+    except (TypeError, ValueError):
+        pass
+
     return {
-        "source": detail["detail"].get("source", 0),
+        "source": source_raw,
         "kills": detail["detail"].get("kills", 0),
         "rank": detail["detail"].get("rank", 0),
-        "playtime": detail["info"].get("playtime", "--"),
+        "ppm": ppm,
+        "playtime": playtime_str,
         "avg_headshots": detail["detail"].get("avg_headshots", "0%"),
         "avg_source": detail["detail"].get("avg_source", "0"),
         "mistake_shout": detail["error"].get("mistake_shout", 0),

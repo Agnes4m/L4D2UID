@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 from PIL import Image, ImageDraw
 
 from .pil_utils import Colors, draw_stat_card, draw_professional_panel
-from ..utils.l4_font import l4_font_20, l4_font_24, l4_font_26, l4_font_30, l4_font_32, l4_font_40
+from ..utils.l4_font import l4_font_20, l4_font_24, l4_font_26, l4_font_30, l4_font_32, l4_font_36, l4_font_40
 
 # 间距和尺寸
 MARGIN_RATIO = 0.05
@@ -99,7 +99,7 @@ def _build_stat_card_config(accent_color: Tuple[int, int, int]) -> Dict:
         卡片配置字典
     """
     return {
-        "stat_font": l4_font_40,
+        "stat_font": l4_font_36,
         "label_font": l4_font_32,
         "label_color": Colors.TEXT_LIGHT_GRAY,
         "value_color": accent_color,
@@ -151,9 +151,9 @@ def create_professional_player_stats(
     gap = max(GAP_MIN, int(img_width * GAP_RATIO))
 
     # 顶部卡片
-    card_w = min(STAT_CARD_MAX_WIDTH, int((img_width - 2 * margin_x - 2 * gap) / 3))
+    card_w = min(STAT_CARD_MAX_WIDTH, int((img_width - 2 * margin_x - 3 * gap) / 4))
     card_h = min(140, int(img_height * STAT_CARD_HEIGHT_RATIO))
-    total_stat_w = 3 * card_w + 2 * gap
+    total_stat_w = 4 * card_w + 3 * gap
     stat_start_x = (img_width - total_stat_w) // 2
     stat_y = margin_y + STAT_CARD_TOP_OFFSET
 
@@ -161,12 +161,15 @@ def create_professional_player_stats(
         ("分数", str(player_data.get("source", 0)), Colors.ACCENT_BLUE),
         ("排名", str(player_data.get("rank", 0)), Colors.ACCENT_GREEN),
         ("爆头率", str(player_data.get("avg_headshots", "0%")), Colors.ACCENT_YELLOW),
+        ("PPM", str(player_data.get("ppm", "--")), Colors.ACCENT_RED),
     ]
 
-    _ = _build_stat_card_config(Colors.ACCENT_BLUE)  # 将在循环中更新颜色
+    _ = _build_stat_card_config(Colors.ACCENT_BLUE)
     for i, (label, value, color) in enumerate(stat_items):
         x = stat_start_x + i * (card_w + gap)
         config = _build_stat_card_config(color)
+        if label == "分数" and len(value) > 7:
+            config["stat_font"] = l4_font_32
         draw_stat_card(
             draw,
             xy=(x, stat_y),
