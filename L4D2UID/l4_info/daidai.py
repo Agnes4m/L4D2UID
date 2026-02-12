@@ -1,12 +1,18 @@
+"""
+L4D2 呆呆服信息查询模块
+
+功能：
+- 使用 Playwright 渲染呆呆服web页面获取玩家信息
+- 将页面截图作为图片返回
+"""
+
 from typing import Union
-from pathlib import Path
 
 from playwright.async_api import async_playwright
 
 from gsuid_core.data_store import get_res_path
 from gsuid_core.plugins.L4D2UID.L4D2UID.utils.api.api import DAIDAIPLAYERAPI
 
-TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 L4PATH = get_res_path("L4D2UID")
 
 
