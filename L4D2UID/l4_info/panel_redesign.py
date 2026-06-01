@@ -3,7 +3,15 @@ from typing import Dict, Tuple
 from PIL import Image, ImageDraw
 
 from .pil_utils import Colors, draw_stat_card, draw_professional_panel
-from ..utils.l4_font import l4_font_20, l4_font_24, l4_font_26, l4_font_30, l4_font_32, l4_font_36, l4_font_40
+from ..utils.l4_font import (
+    l4_font_20,
+    l4_font_24,
+    l4_font_26,
+    l4_font_30,
+    l4_font_32,
+    l4_font_36,
+    l4_font_40,
+)
 
 # 间距和尺寸
 MARGIN_RATIO = 0.05
@@ -32,7 +40,12 @@ PANEL_CONFIGS = [
     {
         "title": "基础信息",
         "title_font": l4_font_30,
-        "data_keys": [("分数", "source"), ("击杀", "kills"), ("排名", "rank"), ("游戏时长", "playtime")],
+        "data_keys": [
+            ("分数", "source"),
+            ("击杀", "kills"),
+            ("排名", "rank"),
+            ("游戏时长", "playtime"),
+        ],
         "value_color": Colors.ACCENT_BLUE,
         "format_rank": True,  # 排名需要添加#前缀
     },
@@ -61,7 +74,12 @@ PANEL_CONFIGS = [
     {
         "title": "其他数据",
         "title_font": l4_font_26,
-        "data_keys": [("占位符1", "zw1"), ("占位符2", "zw2"), ("占位符3", "zw3"), ("占位符4", "zw4")],
+        "data_keys": [
+            ("占位符1", "zw1"),
+            ("占位符2", "zw2"),
+            ("占位符3", "zw3"),
+            ("占位符4", "zw4"),
+        ],
         "value_color": Colors.ACCENT_YELLOW,
     },
 ]
@@ -147,7 +165,9 @@ def create_professional_player_stats(
     img_width, img_height = img.size
 
     margin_x = int(img_width * MARGIN_RATIO)
-    margin_y = max(top_offset + int(img_height * PANEL_HEIGHT_RATIO), int(img_height * 0.04))
+    margin_y = max(
+        top_offset + int(img_height * PANEL_HEIGHT_RATIO), int(img_height * 0.04)
+    )
     gap = max(GAP_MIN, int(img_width * GAP_RATIO))
 
     # 顶部卡片

@@ -38,7 +38,9 @@ def generate_footer(
     except (OSError, IOError):
         # 使用内置字体作为备选
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size)
+            font = ImageFont.truetype(
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", font_size
+            )
         except (OSError, IOError):
             font = ImageFont.load_default()
 
