@@ -35,13 +35,17 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
     qid = ev.user_id
     await bot.logger.info("[L4] [绑定/解绑]UserID: {}".format(qid))
     if not uid:
-        return await bot.send("该命令需要带上正确的uid!(steam32位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
+        return await bot.send(
+            "该命令需要带上正确的uid!(steam32位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
+        )
     elif not uid.isdigit() and ":" in uid:
         # 32位uid
 
         if "绑定" in ev.command:
             if not uid:
-                return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
+                return await bot.send(
+                    "该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
+                )
             data = await L4D2Bind.switch_steam32(
                 qid,
                 ev.bot_id,
@@ -75,9 +79,13 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
         # 64位
         if "绑定" in ev.command:
             if not uid:
-                return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
+                return await bot.send(
+                    "该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid"
+                )
 
-            data = await L4D2Bind.insert_uid(qid, ev.bot_id, uid, ev.group_id, is_digit=False)
+            data = await L4D2Bind.insert_uid(
+                qid, ev.bot_id, uid, ev.group_id, is_digit=False
+            )
             return await send_diff_msg(
                 bot,
                 data,

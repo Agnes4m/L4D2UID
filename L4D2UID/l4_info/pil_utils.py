@@ -98,20 +98,52 @@ def create_rounded_rectangle(
     x, y = 0, 0
     w, h = size
 
-    draw.arc([x, y, x + radius * 2, y + radius * 2], 180, 270, fill=fill, width=outline_width)
-    draw.arc([w - radius * 2, y, w, y + radius * 2], 270, 360, fill=fill, width=outline_width)
-    draw.arc([x, h - radius * 2, x + radius * 2, h], 90, 180, fill=fill, width=outline_width)
-    draw.arc([w - radius * 2, h - radius * 2, w, h], 0, 90, fill=fill, width=outline_width)
+    draw.arc(
+        [x, y, x + radius * 2, y + radius * 2], 180, 270, fill=fill, width=outline_width
+    )
+    draw.arc(
+        [w - radius * 2, y, w, y + radius * 2], 270, 360, fill=fill, width=outline_width
+    )
+    draw.arc(
+        [x, h - radius * 2, x + radius * 2, h], 90, 180, fill=fill, width=outline_width
+    )
+    draw.arc(
+        [w - radius * 2, h - radius * 2, w, h], 0, 90, fill=fill, width=outline_width
+    )
 
     draw.rectangle([x + radius, y, w - radius, y + h], fill=fill)
     draw.rectangle([x, y + radius, w, h - radius], fill=fill)
 
     # 边框
     if outline:
-        draw.arc([x, y, x + radius * 2, y + radius * 2], 180, 270, fill=outline, width=outline_width)
-        draw.arc([w - radius * 2, y, w, y + radius * 2], 270, 360, fill=outline, width=outline_width)
-        draw.arc([x, h - radius * 2, x + radius * 2, h], 90, 180, fill=outline, width=outline_width)
-        draw.arc([w - radius * 2, h - radius * 2, w, h], 0, 90, fill=outline, width=outline_width)
+        draw.arc(
+            [x, y, x + radius * 2, y + radius * 2],
+            180,
+            270,
+            fill=outline,
+            width=outline_width,
+        )
+        draw.arc(
+            [w - radius * 2, y, w, y + radius * 2],
+            270,
+            360,
+            fill=outline,
+            width=outline_width,
+        )
+        draw.arc(
+            [x, h - radius * 2, x + radius * 2, h],
+            90,
+            180,
+            fill=outline,
+            width=outline_width,
+        )
+        draw.arc(
+            [w - radius * 2, h - radius * 2, w, h],
+            0,
+            90,
+            fill=outline,
+            width=outline_width,
+        )
 
     return img
 
@@ -281,14 +313,22 @@ def draw_styled_box(
     draw = ImageDraw.Draw(img)
 
     draw.rounded_rectangle(
-        [x, y, x + w, y + h], radius=corner_radius, fill=bg_color, outline=border_color, width=border_width
+        [x, y, x + w, y + h],
+        radius=corner_radius,
+        fill=bg_color,
+        outline=border_color,
+        width=border_width,
     )
 
     # 绘制标题
     if title and title_font:
         title_height = 35
         # 标题背景条
-        draw.rounded_rectangle([x, y, x + w, y + title_height], radius=corner_radius, fill=title_color + (220,))
+        draw.rounded_rectangle(
+            [x, y, x + w, y + title_height],
+            radius=corner_radius,
+            fill=title_color + (220,),
+        )
 
         # 标题文字
         bbox = draw.textbbox((0, 0), title, font=title_font)
@@ -297,7 +337,11 @@ def draw_styled_box(
         text_y = y + (title_height - (bbox[3] - bbox[1])) // 2
 
         draw.text((text_x, text_y), title, font=title_font, fill=(255, 255, 255))
-        draw.line([x + 10, y + title_height, x + w - 10, y + title_height], fill=(255, 255, 255, 50), width=1)
+        draw.line(
+            [x + 10, y + title_height, x + w - 10, y + title_height],
+            fill=(255, 255, 255, 50),
+            width=1,
+        )
 
     return img
 
@@ -324,7 +368,9 @@ def create_modern_card(
     Returns:
         卡片图片
     """
-    img = create_gradient_background((width, height), Colors.BG_LIGHT, (220, 230, 245), direction="vertical")
+    img = create_gradient_background(
+        (width, height), Colors.BG_LIGHT, (220, 230, 245), direction="vertical"
+    )
     img = img.convert("RGBA")
 
     draw = ImageDraw.Draw(img)

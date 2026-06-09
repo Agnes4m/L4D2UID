@@ -120,9 +120,20 @@ def _draw_player_info_panel(title: Image.Image, detail: AnnePlayer2) -> Image.Im
     easy_paste(title, line, (30, 20))
 
     # 绘制玩家信息
-    draw_text_row(title_draw, f"昵称：{detail['info']['name']}", 70, 20, l4_font_40, "black")
-    draw_text_row(title_draw, f"SteamID：{detail['info']['steamid']}", 30, 80, l4_font_26, "black")
-    draw_text_row(title_draw, f"上次在线：{detail['info']['lasttime']}", 30, 140, l4_font_20, "black")
+    draw_text_row(
+        title_draw, f"昵称：{detail['info']['name']}", 70, 20, l4_font_40, "black"
+    )
+    draw_text_row(
+        title_draw, f"SteamID：{detail['info']['steamid']}", 30, 80, l4_font_26, "black"
+    )
+    draw_text_row(
+        title_draw,
+        f"上次在线：{detail['info']['lasttime']}",
+        30,
+        140,
+        l4_font_20,
+        "black",
+    )
 
     return title
 
@@ -176,7 +187,14 @@ async def draw_anne_player_img(detail: AnnePlayer2, head_img: Image.Image):
     img = _prepare_background_image(900, 1200)
 
     # 2. 绘制顶部标题
-    draw_title_section(img, "求生之路-anne电信服查询", 20, TEXTURED / "title_bg.png", l4_font_40, text_pos=(-1, 30))
+    draw_title_section(
+        img,
+        "求生之路-anne电信服查询",
+        20,
+        TEXTURED / "title_bg.png",
+        l4_font_40,
+        text_pos=(-1, 30),
+    )
 
     # 3. 粘贴玩家头像
     easy_paste(img, head_img.resize((100, 100)), (100, 220), direction="cc")
