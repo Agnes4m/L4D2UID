@@ -1,6 +1,5 @@
-from PIL import ImageFont
-
 from gsuid_core.utils.fonts.fonts import core_font as l4_font
+from PIL import ImageFont
 
 
 def l4_font_main(size: int) -> ImageFont.FreeTypeFont:

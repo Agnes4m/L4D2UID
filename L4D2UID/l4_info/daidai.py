@@ -8,10 +8,10 @@ L4D2 呆呆服信息查询模块
 
 from typing import Union
 
+from gsuid_core.data_store import get_res_path
 from playwright.async_api import async_playwright
 
-from gsuid_core.data_store import get_res_path
-from gsuid_core.plugins.L4D2UID.L4D2UID.utils.api.api import DAIDAIPLAYERAPI
+from ..utils.api.api import DAIDAIPLAYERAPI
 
 L4PATH = get_res_path("L4D2UID")
 
@@ -35,7 +35,7 @@ async def main(name: str):
         # rendered_html = await page.content()
         # print(rendered_html)
 
-        new_path = L4PATH.joinpath("CS2UID/name.png")
+        new_path = L4PATH.joinpath("daidai_screenshot.png")
         await page.screenshot(path=new_path)  # 保存为图片
         await browser.close()  # 关闭浏览器
     with open(new_path, "rb") as f:

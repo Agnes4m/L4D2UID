@@ -1,317 +1,297 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 from PIL import Image, ImageDraw
 
-from .pil_utils import Colors, draw_stat_card, draw_professional_panel
 from ..utils.l4_font import (
     l4_font_20,
     l4_font_24,
     l4_font_26,
-    l4_font_30,
+    l4_font_28,
     l4_font_32,
-    l4_font_36,
-    l4_font_40,
 )
+from .pil_utils import Colors
 
-# 间距和尺寸
-MARGIN_RATIO = 0.05
-GAP_MIN = 25
-GAP_RATIO = 0.04
+MARGIN_X = 40
 
-# 顶部统计卡片
-STAT_CARD_MAX_WIDTH = 220
-STAT_CARD_HEIGHT_RATIO = 0.14
-STAT_CARD_TOP_OFFSET = 50
 
-# 数据面板
-PANEL_GAP_BETWEEN_STAT = 80
-PANEL_MAX_HEIGHT = 350
-PANEL_MIN_HEIGHT = 220
-PANEL_MAX_WIDTH = 420
-PANEL_HEIGHT_RATIO = 0.02
+def draw_dark_stat_card(
+    draw: ImageDraw.ImageDraw,
+    xy: Tuple[int, int],
+    size: Tuple[int, int],
+    label: str,
+    value: str,
+    accent_color: Tuple[int, int, int],
+) -> None:
+    x, y = xy
+    w, h = size
 
-# 最小化面板
-MIN_PANEL_WIDTH = 900
-MIN_PANEL_HEIGHT = 150
-MIN_PANEL_PADDING = 20
+    draw.rounded_rectangle(
+        [x, y, x + w, y + h],
+        radius=10,
+        fill=Colors.PROFESSIONAL_BG + (230,),
+        outline=Colors.PROFESSIONAL_BORDER + (120,),
+        width=1,
+    )
 
-# 面板配置
-PANEL_CONFIGS = [
+    draw.rounded_rectangle(
+        [x + 12, y, x + w - 12, y + 3],
+        radius=2,
+        fill=accent_color + (200,),
+    )
+
+    value_text = str(value)
+    if len(value_text) > 8:
+        vfont = l4_font_24
+    elif len(value_text) > 6:
+        vfont = l4_font_28
+    else:
+        vfont = l4_font_32
+
+    vbox = draw.textbbox((0, 0), value_text, font=vfont)
+    vw = vbox[2] - vbox[0]
+    draw.text(
+        (x + (w - vw) // 2, y + 18),
+        value_text,
+        font=vfont,
+        fill=accent_color + (240,),
+    )
+
+    lbox = draw.textbbox((0, 0), label, font=l4_font_20)
+    lw = lbox[2] - lbox[0]
+    draw.text(
+        (x + (w - lw) // 2, y + h - 28),
+        label,
+        font=l4_font_20,
+        fill=Colors.TEXT_LIGHT_GRAY + (200,),
+    )
+
+
+def draw_data_panel(
+    draw: ImageDraw.ImageDraw,
+    xy: Tuple[int, int],
+    size: Tuple[int, int],
+    title: str,
+    data_dict: Dict[str, str],
+    title_color: Tuple[int, int, int] = Colors.ACCENT_CYAN,
+    data_rows: int = 5,
+) -> None:
+    x, y = xy
+    w, h = size
+
+    draw.rounded_rectangle(
+        [x, y, x + w, y + h],
+        radius=12,
+        fill=Colors.PROFESSIONAL_BG + (220,),
+        outline=Colors.PROFESSIONAL_BORDER + (100,),
+        width=1,
+    )
+
+    title_y = y + 14
+    draw.text((x + 20, title_y), title, font=l4_font_26, fill=Colors.TEXT_DARK + (240,))
+
+    tbox = draw.textbbox((0, 0), title, font=l4_font_26)
+    tw = tbox[2] - tbox[0]
+    draw.line(
+        [(x + 20, title_y + 30), (x + 20 + tw + 40, title_y + 30)],
+        fill=title_color + (150,),
+        width=2,
+    )
+
+    row_start = y + 52
+    row_h = (h - 52 - 14) // data_rows
+
+    items = list(data_dict.items())
+    for i, (label, value) in enumerate(items):
+        ry = row_start + i * row_h
+
+        draw.text((x + 20, ry + 3), label, font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
+
+        value_text = str(value)
+        vbox = draw.textbbox((0, 0), value_text, font=l4_font_24)
+        vw = vbox[2] - vbox[0]
+        draw.text(
+            (x + w - vw - 20, ry + 2),
+            value_text,
+            font=l4_font_24,
+            fill=title_color + (240,),
+        )
+
+        if i < len(items) - 1:
+            draw.line(
+                [(x + 20, ry + row_h - 1), (x + w - 20, ry + row_h - 1)],
+                fill=Colors.PROFESSIONAL_BORDER + (60,),
+                width=1,
+            )
+
+
+STAT_CARD_CONFIGS: List[Tuple[str, str, Tuple[int, int, int]]] = [
+    ("总积分", "source", Colors.ACCENT_CYAN),
+    ("总击杀", "kills", Colors.ACCENT_GREEN),
+    ("爆头率", "avg_headshots", Colors.ACCENT_YELLOW),
+    ("PPM", "ppm", Colors.ACCENT_RED),
+]
+
+QUARTER_STAT_CARD_CONFIGS: List[Tuple[str, str, Tuple[int, int, int]]] = [
+    ("季度积分", "source", Colors.ACCENT_CYAN),
+    ("季度击杀", "kills", Colors.ACCENT_GREEN),
+    ("爆头率", "avg_headshots", Colors.ACCENT_YELLOW),
+    ("季度PPM", "ppm", Colors.ACCENT_RED),
+]
+
+QUARTER_PANEL_CONFIGS: List[Dict] = [
     {
-        "title": "基础信息",
-        "title_font": l4_font_30,
-        "data_keys": [
-            ("分数", "source"),
-            ("击杀", "kills"),
-            ("排名", "rank"),
-            ("游戏时长", "playtime"),
+        "title": "季度辅助数据",
+        "color": Colors.ACCENT_GREEN,
+        "keys": [
+            ("医疗包使用", "first_aid_give"),
+            ("给药次数", "pills_give"),
+            ("给针次数", "adrenaline_give"),
+            ("扶起倒地", "friend_up"),
+            ("电击救活", "save_friend"),
+            ("保护队友(普感)", "protect_friend"),
         ],
-        "value_color": Colors.ACCENT_BLUE,
-        "format_rank": True,  # 排名需要添加#前缀
     },
     {
-        "title": "黑枪数据",
-        "title_font": l4_font_26,
-        "data_keys": [
+        "title": "季度扣分行为",
+        "color": Colors.ACCENT_RED,
+        "keys": [
             ("黑枪次数", "mistake_shout"),
             ("杀死队友", "kill_friend"),
             ("击倒队友", "down_friend"),
             ("放弃队友", "abandon_friend"),
+            ("让感染入安全门", "put_into"),
+            ("惊扰Witch", "agitate_witch"),
         ],
-        "value_color": Colors.ACCENT_RED,
-    },
-    {
-        "title": "队友协作",
-        "title_font": l4_font_26,
-        "data_keys": [
-            ("药丸赠与", "pills_give"),
-            ("救援队友", "protect_friend"),
-            ("秒妹数量", "witch_instantly_kill"),
-            ("地图完成", "map_clear"),
-        ],
-        "value_color": Colors.ACCENT_GREEN,
-    },
-    {
-        "title": "其他数据",
-        "title_font": l4_font_26,
-        "data_keys": [
-            ("占位符1", "zw1"),
-            ("占位符2", "zw2"),
-            ("占位符3", "zw3"),
-            ("占位符4", "zw4"),
-        ],
-        "value_color": Colors.ACCENT_YELLOW,
     },
 ]
 
-
-def _build_data_dict(config: Dict, player_data: Dict) -> Dict[str, str]:
-    """
-    根据配置和玩家数据构建面板数据字典
-
-    Args:
-        config: 面板配置（包含data_keys）
-        player_data: 玩家数据
-
-    Returns:
-        标签-值映射字典
-    """
-    data_dict = {}
-    for label, key in config["data_keys"]:
-        value = player_data.get(key, "--")
-        # 排名数据需要特殊处理
-        if config.get("format_rank") and key == "rank":
-            value = f"#{value}"
-        data_dict[label] = str(value)
-    return data_dict
-
-
-def _build_stat_card_config(accent_color: Tuple[int, int, int]) -> Dict:
-    """
-    为统计卡片生成通用配置字典
-
-    Args:
-        accent_color: 强调色
-
-    Returns:
-        卡片配置字典
-    """
-    return {
-        "stat_font": l4_font_36,
-        "label_font": l4_font_32,
-        "label_color": Colors.TEXT_LIGHT_GRAY,
-        "value_color": accent_color,
-        "bg_color": Colors.PROFESSIONAL_CARD + (245,),
-        "border_color": accent_color + (180,),
-    }
-
-
-def _build_panel_config() -> Dict:
-    """
-    为数据面板生成通用配置字典
-
-    Returns:
-        面板配置字典
-    """
-    return {
-        "label_font": l4_font_20,
-        "value_font": l4_font_24,
-        "title_color": Colors.PROFESSIONAL_TITLE,
-        "label_color": Colors.TEXT_LIGHT_GRAY,
-        "bg_color": Colors.PROFESSIONAL_CARD + (245,),
-        "border_color": Colors.PROFESSIONAL_BORDER + (160,),
-    }
+PANEL_CONFIGS: List[Dict] = [
+    {
+        "title": "基础数据",
+        "color": Colors.ACCENT_CYAN,
+        "keys": [
+            ("战役积分", "source"),
+            ("总击杀数", "kills"),
+            ("游戏时长", "playtime"),
+            ("近战击杀", "melee_charge"),
+            ("地图通关", "map_clear"),
+            ("PPM", "ppm"),
+        ],
+    },
+    {
+        "title": "黑枪数据",
+        "color": Colors.ACCENT_RED,
+        "keys": [
+            ("黑枪次数", "mistake_shout"),
+            ("杀死队友", "kill_friend"),
+            ("击倒队友", "down_friend"),
+            ("放弃队友", "abandon_friend"),
+            ("让感染入安全门", "put_into"),
+            ("惊扰Witch", "agitate_witch"),
+        ],
+    },
+    {
+        "title": "辅助数据",
+        "color": Colors.ACCENT_GREEN,
+        "keys": [
+            ("医疗包使用", "first_aid_give"),
+            ("给药次数", "pills_give"),
+            ("给针次数", "adrenaline_give"),
+            ("扶起倒地", "friend_up"),
+            ("电击救活", "save_friend"),
+            ("保护队友(普感)", "protect_friend"),
+        ],
+    },
+    {
+        "title": "综合数据",
+        "color": Colors.ACCENT_TEAL,
+        "keys": [
+            ("爆头率", "avg_headshots"),
+            ("总击杀数", "kills"),
+            ("战役积分", "source"),
+            ("近战击杀", "melee_charge"),
+            ("PPM", "ppm"),
+        ],
+    },
+]
 
 
 def create_professional_player_stats(
     bg_img: Image.Image,
     player_data: dict,
     top_offset: int = 0,
-) -> Image.Image:
-    """
-    创建专业玩家统计面板
+    stat_card_configs: list[tuple[str, str, tuple[int, int, int]]] | None = None,
+    panel_configs: list[dict] | None = None,
+    draw_footer: bool = True,
+) -> tuple[Image.Image, int]:
+    _sc_configs = stat_card_configs or STAT_CARD_CONFIGS
+    _p_configs = panel_configs or PANEL_CONFIGS
 
-    Args:
-        bg_img: 背景图片
-        player_data: 玩家数据字典
-        top_offset: 预留的顶部高度（用于标题/头像）
-
-    Returns:
-        包含面板的图片对象
-    """
     img = bg_img.copy().convert("RGBA")
     draw = ImageDraw.Draw(img)
 
-    img_width, img_height = img.size
+    img_w, img_h = img.size
 
-    margin_x = int(img_width * MARGIN_RATIO)
-    margin_y = max(
-        top_offset + int(img_height * PANEL_HEIGHT_RATIO), int(img_height * 0.04)
-    )
-    gap = max(GAP_MIN, int(img_width * GAP_RATIO))
+    card_w = 175
+    card_h = 95
+    card_gap = 20
+    cards_total = len(_sc_configs) * card_w + (len(_sc_configs) - 1) * card_gap
+    cards_x = (img_w - cards_total) // 2
+    cards_y = top_offset + 10
 
-    # 顶部卡片
-    card_w = min(STAT_CARD_MAX_WIDTH, int((img_width - 2 * margin_x - 3 * gap) / 4))
-    card_h = min(140, int(img_height * STAT_CARD_HEIGHT_RATIO))
-    total_stat_w = 4 * card_w + 3 * gap
-    stat_start_x = (img_width - total_stat_w) // 2
-    stat_y = margin_y + STAT_CARD_TOP_OFFSET
+    for i, (label, key, color) in enumerate(_sc_configs):
+        x = cards_x + i * (card_w + card_gap)
+        value = str(player_data.get(key, "0"))
+        if key == "avg_headshots" and value.endswith("%"):
+            value = value
+        draw_dark_stat_card(draw, (x, cards_y), (card_w, card_h), label, value, color)
 
-    stat_items = [
-        ("分数", str(player_data.get("source", 0)), Colors.ACCENT_BLUE),
-        ("排名", str(player_data.get("rank", 0)), Colors.ACCENT_GREEN),
-        ("爆头率", str(player_data.get("avg_headshots", "0%")), Colors.ACCENT_YELLOW),
-        ("PPM", str(player_data.get("ppm", "--")), Colors.ACCENT_RED),
-    ]
+    panels_top = cards_y + card_h + 40
+    panel_w = 390
+    panel_h = 270
+    panel_gap = 25
 
-    _ = _build_stat_card_config(Colors.ACCENT_BLUE)
-    for i, (label, value, color) in enumerate(stat_items):
-        x = stat_start_x + i * (card_w + gap)
-        config = _build_stat_card_config(color)
-        if label == "分数" and len(value) > 7:
-            config["stat_font"] = l4_font_32
-        draw_stat_card(
+    left_x = MARGIN_X
+    right_x = img_w - MARGIN_X - panel_w
+
+    for idx, cfg in enumerate(_p_configs):
+        col = idx % 2
+        row = idx // 2
+        x = left_x if col == 0 else right_x
+        y = panels_top + row * (panel_h + panel_gap)
+
+        data_dict = {}
+        for label, key in cfg["keys"]:
+            data_dict[label] = str(player_data.get(key, "0"))
+
+        draw_data_panel(
             draw,
-            xy=(x, stat_y),
-            size=(card_w, card_h),
-            label=label,
-            value=value.replace("%", "") if isinstance(value, str) else str(value),
-            **config,
+            (x, y),
+            (panel_w, panel_h),
+            cfg["title"],
+            data_dict,
+            cfg["color"],
+            data_rows=len(cfg["keys"]),
         )
 
-    # 方格数据数值
-    panels_area_top = stat_y + card_h + PANEL_GAP_BETWEEN_STAT
-    panels_area_h = img_height - panels_area_top - margin_y
+    num_rows = (len(_p_configs) + 1) // 2
+    section_end = panels_top + num_rows * (panel_h + panel_gap)
 
-    max_panel_h = (panels_area_h - gap) // 2
-    panel_h = min(PANEL_MAX_HEIGHT, max(PANEL_MIN_HEIGHT, max_panel_h))
-    panel_w = min(PANEL_MAX_WIDTH, (img_width - 3 * margin_x) // 2)
-
-    used_h = panel_h * 2 + gap
-    panels_area_y = panels_area_top + max(0, (panels_area_h - used_h) // 2)
-
-    left_x = margin_x
-    right_x = img_width - margin_x - panel_w
-
-    # 面板公共配置
-    panel_base_config = _build_panel_config()
-
-    # 绘制方格数据（1/2）
-    for panel_idx, config in enumerate(PANEL_CONFIGS[:2]):
-        x = left_x if panel_idx == 0 else right_x
-        data_dict = _build_data_dict(config, player_data)
-
-        draw_professional_panel(
-            draw,
-            title=config["title"],
-            data_dict=data_dict,
-            xy=(x, panels_area_y),
-            panel_size=(panel_w, panel_h),
-            title_font=config["title_font"],
-            value_color=config["value_color"],
-            **panel_base_config,
+    if draw_footer:
+        footer_y = panels_top + num_rows * (panel_h + panel_gap) + 20
+        draw.rounded_rectangle(
+            [MARGIN_X, footer_y, img_w - MARGIN_X, footer_y + 40],
+            radius=8,
+            fill=Colors.PROFESSIONAL_BG + (200,),
+            outline=Colors.PROFESSIONAL_BORDER + (80,),
+            width=1,
         )
-
-    # 绘制方格数据（3/4）
-    row2_y = panels_area_y + panel_h + gap
-    for panel_idx, config in enumerate(PANEL_CONFIGS[2:]):
-        x = left_x if panel_idx == 0 else right_x
-        data_dict = _build_data_dict(config, player_data)
-
-        draw_professional_panel(
-            draw,
-            title=config["title"],
-            data_dict=data_dict,
-            xy=(x, row2_y),
-            panel_size=(panel_w, panel_h),
-            title_font=config["title_font"],
-            value_color=config["value_color"],
-            **panel_base_config,
+        draw.text(
+            (MARGIN_X + 15, footer_y + 10),
+            "数据来源: anne.trygek.com",
+            font=l4_font_20,
+            fill=Colors.TEXT_LIGHT_GRAY + (150,),
         )
+        section_end = footer_y + 40
 
-    return img
-
-
-def create_minimal_stats_panel(
-    width: int = MIN_PANEL_WIDTH,
-    height: int = MIN_PANEL_HEIGHT,
-    player_data: dict | None = None,
-) -> Image.Image:
-    """
-    创建最小化统计面板（紧凑的水平卡片条）
-
-    Args:
-        width: 面板宽度（默认900px）
-        height: 面板高度（默认150px）
-        player_data: 玩家数据字典
-
-    Returns:
-        含4个关键统计卡片的面板图片
-    """
-    if player_data is None:
-        player_data = {}
-
-    img = Image.new("RGBA", (width, height), Colors.PROFESSIONAL_BG + (255,))
-    draw = ImageDraw.Draw(img)
-
-    draw.rounded_rectangle(
-        [0, 0, width, height],
-        radius=10,
-        outline=Colors.PROFESSIONAL_BORDER + (200,),
-        width=2,
-    )
-
-    # 计算尺寸
-    padding = MIN_PANEL_PADDING
-    card_width = max(140, (width - padding * 5) // 4)
-    card_height = height - padding * 2
-    x_start = padding
-
-    min_stats = [
-        ("分数", "source", Colors.ACCENT_BLUE),
-        ("击杀", "kills", Colors.ACCENT_GREEN),
-        ("排名", "rank", Colors.ACCENT_YELLOW),
-        ("爆头", "avg_headshots", Colors.ACCENT_RED),
-    ]
-
-    # 绘制
-    for i, (label, key, color) in enumerate(min_stats):
-        x = x_start + i * (card_width + padding)
-        value = str(player_data.get(key, 0))
-        value = value.replace("%", "") if isinstance(value, str) else str(value)
-
-        draw_stat_card(
-            draw,
-            xy=(x, padding),
-            size=(card_width, card_height),
-            label=label,
-            value=value,
-            stat_font=l4_font_40,
-            label_font=l4_font_40,
-            label_color=Colors.TEXT_LIGHT_GRAY,
-            value_color=color,
-            bg_color=(255, 255, 255, 6),
-            border_color=color + (140,),
-        )
-
-    return img
+    return img, section_end

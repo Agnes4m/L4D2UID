@@ -10,48 +10,50 @@ PIL 图片美化工具库（combined utilities）
 - 图片处理工具: 文字渲染、图片合成、缩放、百分比转换等
 """
 
-from typing import Tuple, Union, Optional, cast
 from pathlib import Path
+from typing import Optional, Tuple, Union, cast
 
-from PIL import Image, ImageDraw, ImageFont
-
-from gsuid_core.logger import logger
 from gsuid_core.data_store import get_res_path
+from gsuid_core.logger import logger
 from gsuid_core.utils.image.utils import download_pic_to_image
+from PIL import Image, ImageDraw, ImageFont
 
 _IMAGE_CACHE: dict[Path, Image.Image] = {}
 """图片缓存"""
 
 
-# 颜色定义（现代调色板）
+# 颜色定义（暗色主题 - 匹配 anne.trygek.com）
 class Colors:
-    """配色"""
+    """配色 - 暗色主题"""
 
     # 主色系
-    PRIMARY = (70, 130, 180)  # 钢蓝色
-    SECONDARY = (100, 149, 237)  # 矢车菊蓝
+    PRIMARY = (56, 189, 248)  # 青色 ACCENT_CYAN
+    SECONDARY = (45, 212, 191)  # 青绿色 ACCENT_TEAL
 
     # 文字
-    TEXT_DARK = (45, 55, 72)  # 深灰/黑
-    TEXT_LIGHT = (255, 255, 255)  # 白色
+    TEXT_DARK = (226, 232, 240)  # 浅灰白 (暗色主题中作为主要文字色)
+    TEXT_LIGHT = (226, 232, 240)  # 浅灰白
     TEXT_GRAY = (107, 114, 128)  # 中灰
-    TEXT_LIGHT_GRAY = (156, 163, 175)  # 浅灰
+    TEXT_LIGHT_GRAY = (148, 163, 184)  # 浅灰
 
     # 背景
-    BG_LIGHT = (240, 244, 250)  # 浅蓝白
-    BG_DARK = (15, 23, 42)  # 深蓝黑
+    BG_LIGHT = (17, 24, 39)  # 深蓝灰表面 #111827
+    BG_DARK = (10, 14, 23)  # 极深蓝黑 #0a0e17
 
     # 强调
-    ACCENT_RED = (239, 68, 68)  # 红色
-    ACCENT_GREEN = (34, 197, 94)  # 绿色
-    ACCENT_YELLOW = (234, 179, 8)  # 金色
-    ACCENT_BLUE = (59, 130, 246)  # 蓝色
+    ACCENT_BLUE = (56, 189, 248)  # 青色 #38bdf8
+    ACCENT_CYAN = (56, 189, 248)  # 青色 #38bdf8
+    ACCENT_TEAL = (45, 212, 191)  # 青绿色 #2dd4bf
+    ACCENT_RED = (251, 113, 133)  # 粉红 #fb7185
+    ACCENT_GREEN = (52, 211, 153)  # 翠绿 #34d399
+    ACCENT_YELLOW = (250, 204, 21)  # 金色 #facc15
+    ACCENT_PURPLE = (167, 139, 250)  # 紫色
 
     # 专业色
-    PROFESSIONAL_BG = (248, 250, 252)  # 浅灰蓝背景
-    PROFESSIONAL_CARD = (255, 255, 255)  # 白色卡片
-    PROFESSIONAL_BORDER = (226, 232, 240)  # 边框色
-    PROFESSIONAL_TITLE = (15, 23, 42)  # 标题色
+    PROFESSIONAL_BG = (17, 24, 39)  # 深表面 #111827
+    PROFESSIONAL_CARD = (17, 24, 39)  # 深表面 #111827
+    PROFESSIONAL_BORDER = (55, 65, 81)  # 边框 #374151
+    PROFESSIONAL_TITLE = (56, 189, 248)  # 青色标题
 
 
 def load_image(path: Path) -> Image.Image:
@@ -98,18 +100,10 @@ def create_rounded_rectangle(
     x, y = 0, 0
     w, h = size
 
-    draw.arc(
-        [x, y, x + radius * 2, y + radius * 2], 180, 270, fill=fill, width=outline_width
-    )
-    draw.arc(
-        [w - radius * 2, y, w, y + radius * 2], 270, 360, fill=fill, width=outline_width
-    )
-    draw.arc(
-        [x, h - radius * 2, x + radius * 2, h], 90, 180, fill=fill, width=outline_width
-    )
-    draw.arc(
-        [w - radius * 2, h - radius * 2, w, h], 0, 90, fill=fill, width=outline_width
-    )
+    draw.arc([x, y, x + radius * 2, y + radius * 2], 180, 270, fill=fill, width=outline_width)
+    draw.arc([w - radius * 2, y, w, y + radius * 2], 270, 360, fill=fill, width=outline_width)
+    draw.arc([x, h - radius * 2, x + radius * 2, h], 90, 180, fill=fill, width=outline_width)
+    draw.arc([w - radius * 2, h - radius * 2, w, h], 0, 90, fill=fill, width=outline_width)
 
     draw.rectangle([x + radius, y, w - radius, y + h], fill=fill)
     draw.rectangle([x, y + radius, w, h - radius], fill=fill)
@@ -368,9 +362,7 @@ def create_modern_card(
     Returns:
         卡片图片
     """
-    img = create_gradient_background(
-        (width, height), Colors.BG_LIGHT, (220, 230, 245), direction="vertical"
-    )
+    img = create_gradient_background((width, height), Colors.BG_LIGHT, (220, 230, 245), direction="vertical")
     img = img.convert("RGBA")
 
     draw = ImageDraw.Draw(img)

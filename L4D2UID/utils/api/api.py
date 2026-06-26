@@ -1,7 +1,6 @@
-ANNEHOST = "https://sb.trygek.com"
-ANNEAPIHOST = f"{ANNEHOST}/l4d_stats"
+ANNEHOST = "https://anne.trygek.com"
+ANNEAPIHOST = f"{ANNEHOST}/stats"
 
-ANNERANKAPI = f"{ANNEAPIHOST}/ranking/index.php"
 ANNESEARCHAPI = f"{ANNEAPIHOST}/ranking/search.php"
 ANNEPLAYERAPI = f"{ANNEAPIHOST}/ranking/player.php"
 
