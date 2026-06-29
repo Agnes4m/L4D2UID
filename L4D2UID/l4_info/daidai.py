@@ -1,11 +1,3 @@
-"""
-L4D2 呆呆服信息查询模块
-
-功能：
-- 使用 Playwright 渲染呆呆服web页面获取玩家信息
-- 将页面截图作为图片返回
-"""
-
 from typing import Union
 
 from gsuid_core.data_store import get_res_path
@@ -23,17 +15,13 @@ async def get_daidai_player_img(
 
 
 async def main(name: str):
-    # 使用 Playwright 渲染 HTML
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
         await page.goto(f"{DAIDAIPLAYERAPI}{name}")
 
-        # 设置视口
         await page.set_viewport_size({"width": 900, "height": 1200})
 
-        # rendered_html = await page.content()
-        # print(rendered_html)
 
         new_path = L4PATH.joinpath("daidai_screenshot.png")
         await page.screenshot(path=new_path)  # 保存为图片

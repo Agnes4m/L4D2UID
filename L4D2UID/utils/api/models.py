@@ -71,9 +71,7 @@ class AnnePlayerSur(TypedDict):
     ammo_arrange: str
     adrenaline_give: str
     pills_give: str
-    """给药"""
     first_aid_give: str
-    """给包"""
     friend_up: str
     diss_friend: str
     save_friend: str
@@ -83,10 +81,8 @@ class AnnePlayerSur(TypedDict):
     pro_from_charger: str
     pro_from_jockey: str
     melee_charge: str
-    """刀牛"""
     tank_kill: str
     witch_instantly_kill: str
-    """秒妹"""
 
 
 class AnnePlayerInf(TypedDict):
@@ -105,6 +101,7 @@ class AnnePlayerInfo(TypedDict):
     steamid: str
     playtime: str
     lasttime: str
+    quarter_scope: str
 
 
 class AnnePlayer2(TypedDict):

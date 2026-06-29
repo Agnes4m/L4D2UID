@@ -2,9 +2,11 @@ import json as js
 from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
+from asyncio import sleep
+
 from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
-from httpx import AsyncClient
+from httpx import AsyncClient, ConnectError
 
 from .api import ANNEPLAYERAPI, ANNESEARCHAPI
 from .models import (
@@ -28,6 +30,7 @@ class L4D2Api:
         "Electron/8.5.5"
         "Safari/537.36",
     }
+    _COOKIE = "ANNEWEB_STEAM=c154aac293df935767611f2b72eae854"
 
     async def _l4_request(
         self,
@@ -41,52 +44,60 @@ class L4D2Api:
         need_tk: bool = True,
     ) -> Union[Dict, bytes, int]:
         header = deepcopy(self._HEADER)
+        header["Cookie"] = self._COOKIE
 
         if json:
             method = "POST"
-        async with AsyncClient(verify=self.ssl_verify) as client:
-            resp = await client.request(
-                method,
-                url=url,
-                headers=header,
-                params=params,
-                json=json,
-                data=data,
-                timeout=300,
-            )
-            if resp.status_code == 404:
-                return 404
+        for attempt in range(3):
+            try:
+                async with AsyncClient(verify=self.ssl_verify) as client:
+                    resp = await client.request(
+                        method,
+                        url=url,
+                        headers=header,
+                        params=params,
+                        json=json,
+                        data=data,
+                        timeout=300,
+                    )
+                break
+            except ConnectError as e:
+                logger.warning(f"[l4] 请求失败 (第{attempt + 1}/3次): {e}")
+                if attempt < 2:
+                    await sleep(2)
+                else:
+                    return -1
+        if resp.status_code == 404:
+            return 404
 
-            # 网页访问
-            if out_type != "json":
-                try:
-                    raw_data = resp.content
-                except ValueError:
-                    logger.error(f"解析 JSON 数据失败: {resp.text}")
-                    return 4001
-                return raw_data
+        if out_type != "json":
+            try:
+                raw_data = resp.content
+            except ValueError:
+                logger.error(f"解析 JSON 数据失败: {resp.text}")
+                return 4001
+            return raw_data
 
-            else:
-                # json访问
+        else:
+            try:
+                raw_data = await resp.json()
+            except:  # noqa: E722
+                logger.error("未知的 Content-Type:")
+                _raw_data = resp.text
                 try:
-                    raw_data = await resp.json()
+                    raw_data = js.loads(_raw_data)
                 except:  # noqa: E722
-                    logger.error("未知的 Content-Type:")
-                    _raw_data = resp.text
-                    try:
-                        raw_data = js.loads(_raw_data)
-                    except:  # noqa: E722
-                        raw_data = {"result": {"error_code": -999, "data": _raw_data}}
-                try:
-                    if not raw_data["result"]:
-                        return raw_data
-                except Exception:
+                    raw_data = {"result": {"error_code": -999, "data": _raw_data}}
+            try:
+                if not raw_data["result"]:
                     return raw_data
-                if "result" in raw_data and "error_code" in raw_data["result"]:
-                    return raw_data["result"]["error_code"]
-                elif raw_data["code"] != 0:
-                    return raw_data["code"]
+            except Exception:
                 return raw_data
+            if "result" in raw_data and "error_code" in raw_data["result"]:
+                return raw_data["result"]["error_code"]
+            elif raw_data["code"] != 0:
+                return raw_data["code"]
+            return raw_data
 
     async def search_player(self, keyword: str):
         data = await self._l4_request(
@@ -164,7 +175,6 @@ class L4D2Api:
             playtime_label = "季度时长" if is_quarter else "游玩时长"
             kills_label = "季度击杀数" if is_quarter else "总击杀数"
 
-            # --- Profile header ---
             profile = soup.find("div", class_="profile-header")
             if profile is None:
                 return 401
@@ -194,7 +204,9 @@ class L4D2Api:
             else:
                 meta_source = playtime = lasttime = ""
 
-            # --- Stats grid ---
+            scope_el = soup.find("div", class_="profile-scope-current")
+            quarter_scope = scope_el.find("strong").text.strip() if scope_el else ""
+
             kills = avg_headshots = ppm_val = melee_charge = "0"
             pills_give = adrenaline_give = map_clear = "0"
             grid = soup.find("div", class_="stats-grid")
@@ -221,7 +233,6 @@ class L4D2Api:
                     elif "地图通关" in label:
                         map_clear = val
 
-            # --- Data panels ---
             panels = soup.find_all("div", class_="data-panel")
             penalty = self._panel_by_title(panels, "扣分")
             support = self._panel_by_title(panels, "辅助")
@@ -255,6 +266,7 @@ class L4D2Api:
                     "steamid": steamid,
                     "playtime": playtime,
                     "lasttime": lasttime,
+                    "quarter_scope": quarter_scope,
                 },
             )
             detail_dict = cast(

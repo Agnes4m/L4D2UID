@@ -1,5 +1,5 @@
-from gsuid_core.logger import logger
 from gsuid_core.sv import SV, Bot, Event
+from gsuid_core.logger import logger
 from gsuid_core.utils.message import send_diff_msg
 
 from ..utils.database.models import L4D2Bind
@@ -29,8 +29,6 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
     if not uid:
         return await bot.send("该命令需要带上正确的uid!(steam32位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
     elif not uid.isdigit() and ":" in uid:
-        # 32位uid
-
         if "绑定" in ev.command:
             if not uid:
                 return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
@@ -64,7 +62,6 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                 return await bot.send(f"[L4] 尚未绑定该UID{uid}")
 
     elif uid.isdigit() and len(uid) == 17:
-        # 64位
         if "绑定" in ev.command:
             if not uid:
                 return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
@@ -97,7 +94,6 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                 },
             )
     else:
-        # 姓名
         if "绑定" in ev.command:
             if not uid:
                 return await bot.send("该命令需要带上你的昵称")

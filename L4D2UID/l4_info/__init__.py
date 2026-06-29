@@ -1,10 +1,4 @@
 # coding:utf-8
-"""
-L4D2 查询模块 - 信息查询入口
-
-集成 Anne 电信服和呆呆服两个服务器的玩家查询功能
-提供查询和搜索指令
-"""
 
 from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
@@ -28,7 +22,6 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
     else:
         user_id = ev.user_id
 
-    # 判断服务器类型
     tag = await L4D2Bind.get_searchtype(user_id)
     logger.info(f"[l4]查询服务器{tag}用户{user_id}")
     if tag is None or not tag:

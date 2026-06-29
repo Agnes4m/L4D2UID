@@ -120,7 +120,6 @@ class L4D2Bindadmin(GsAdminModel):
         icon="fa fa-users",
     )  # type: ignore
 
-    # 配置管理模型
     model = L4D2Bind
 
 
@@ -132,5 +131,4 @@ class L4D2Useradmin(GsAdminModel):
         icon="fa fa-users",
     )  # type: ignore
 
-    # 配置管理模型
     model = L4D2User

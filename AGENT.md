@@ -1,53 +1,49 @@
-# L4D2UID Agent Guide
+# L4D2UID
 
-## Project
+gsuid_core 插件，查询 L4D2 玩家数据（Anne 电信服 + 呆呆服）。
 
-L4D2UID - gsuid_core plugin for Left 4 Dead 2 player stats queries.
+## 命令
 
-## Tools & Commands
+| 触发 | 功能 |
+|------|------|
+| `l4查询` | 查询绑定/指定玩家统计 |
+| `l4搜索` | 按名字搜索玩家 |
+| `l4绑定` / `l4切换` / `l4删除` | 绑定/切换/删除 SteamID |
+| `l4帮助` | 帮助图片 |
 
-- **Package manager**: `uv` (not pip/poetry)
-- **Formatter**: `ruff format .`
-- **Linter**: `ruff check .`
-- **Python**: >=3.12
+## 结构
 
-## Code Style
+| 路径 | 说明 |
+|------|------|
+| `l4_info/anne.py` | Anne 服图片生成 |
+| `l4_info/daidai.py` | 呆呆服 Playwright 截图 |
+| `l4_info/panel_redesign.py` | 统计卡片 + 面板绘制 |
+| `l4_info/pil_utils.py` | Colors 配色 + load_image |
+| `utils/api/request.py` | HTTP 客户端 + HTML 解析 |
+| `utils/api/api.py` | API URL 常量 |
+| `utils/api/models.py` | TypedDict 模型 |
+| `l4_user/__init__.py` | 绑定指令 |
+| `l4_help/__init__.py` | 帮助指令 |
 
-- Line length: 120
-- Double quotes
-- Modern type hints (`list[int]` not `List[int]`)
-- Prefer pathlib, f-strings
+## API
 
-## Key Structure
+- 总榜: `GET player.php?steamid=<id>`
+- 季度榜: `GET player.php?steamid=<id>&quarter=20262`
+- 搜索: `GET search.php?q=<keyword>`
+- 基础: `https://anne.trygek.com/stats/ranking/`
 
-| Path | Purpose |
-|------|---------|
-| `L4D2UID/__init__.py` | Plugin entry (prefix `l4`) |
-| `L4D2UID/l4_info/anne.py` | Anne server image generation |
-| `L4D2UID/l4_info/daidai.py` | Daidai server screenshot |
-| `L4D2UID/l4_info/panel_redesign.py` | Stats panel drawing |
-| `L4D2UID/l4_info/pil_utils.py` | PIL helpers, Colors class |
-| `L4D2UID/utils/api/request.py` | HTTP client + HTML parser |
-| `L4D2UID/utils/api/api.py` | API URL constants |
-| `L4D2UID/utils/api/models.py` | Typed dict models |
-| `L4D2UID/l4_user/__init__.py` | User bind commands |
-| `L4D2UID/l4_help/__init__.py` | Help command |
+## 工具
 
-## Anne API
+- `uv` 管理依赖
+- `ruff` 格式化/lint (line-length=120)
+- Python >=3.12
 
-- Base: `https://anne.trygek.com/l4d_stats/ranking/`
-- Search: GET with `?q=<keyword>`, returns HTML table
-- Player: GET `player.php?steamid=<id>`, returns HTML
+## 配色
 
-## Colors (dark theme)
+bg=#0a0e17, surface=#111827, accent=#38bdf8, text=#e2e8f0, muted=#94a3b8
 
-- bg: `#0a0e17`, surface: `#111827`
-- accent cyan: `#38bdf8`, accent teal: `#2dd4bf`
-- text: `#e2e8f0`, text muted: `#94a3b8`
+## 规范
 
-## Conventions
-
-- Always run `ruff check .` before committing
-- Use relative imports within the package
-- CSS-like class names for Anne data extraction
-- Use Playwright only for daidai server
+- 双击号, 相对导入, pathlib, f-strings
+- 无文档字符串, 最简注释
+- ruff check 通过后提交

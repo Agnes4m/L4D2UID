@@ -143,11 +143,10 @@ QUARTER_PANEL_CONFIGS: List[Dict] = [
         "title": "季度辅助数据",
         "color": Colors.ACCENT_GREEN,
         "keys": [
-            ("医疗包使用", "first_aid_give"),
+            ("近战击杀", "melee_charge"),
+            ("地图通关", "map_clear"),
             ("给药次数", "pills_give"),
-            ("给针次数", "adrenaline_give"),
             ("扶起倒地", "friend_up"),
-            ("电击救活", "save_friend"),
             ("保护队友(普感)", "protect_friend"),
         ],
     },
@@ -167,19 +166,18 @@ QUARTER_PANEL_CONFIGS: List[Dict] = [
 
 PANEL_CONFIGS: List[Dict] = [
     {
-        "title": "基础数据",
-        "color": Colors.ACCENT_CYAN,
+        "title": "辅助数据",
+        "color": Colors.ACCENT_GREEN,
         "keys": [
-            ("战役积分", "source"),
-            ("总击杀数", "kills"),
-            ("游戏时长", "playtime"),
             ("近战击杀", "melee_charge"),
             ("地图通关", "map_clear"),
-            ("PPM", "ppm"),
+            ("给药次数", "pills_give"),
+            ("扶起倒地", "friend_up"),
+            ("保护队友(普感)", "protect_friend"),
         ],
     },
     {
-        "title": "黑枪数据",
+        "title": "扣分行为",
         "color": Colors.ACCENT_RED,
         "keys": [
             ("黑枪次数", "mistake_shout"),
@@ -188,29 +186,6 @@ PANEL_CONFIGS: List[Dict] = [
             ("放弃队友", "abandon_friend"),
             ("让感染入安全门", "put_into"),
             ("惊扰Witch", "agitate_witch"),
-        ],
-    },
-    {
-        "title": "辅助数据",
-        "color": Colors.ACCENT_GREEN,
-        "keys": [
-            ("医疗包使用", "first_aid_give"),
-            ("给药次数", "pills_give"),
-            ("给针次数", "adrenaline_give"),
-            ("扶起倒地", "friend_up"),
-            ("电击救活", "save_friend"),
-            ("保护队友(普感)", "protect_friend"),
-        ],
-    },
-    {
-        "title": "综合数据",
-        "color": Colors.ACCENT_TEAL,
-        "keys": [
-            ("爆头率", "avg_headshots"),
-            ("总击杀数", "kills"),
-            ("战役积分", "source"),
-            ("近战击杀", "melee_charge"),
-            ("PPM", "ppm"),
         ],
     },
 ]

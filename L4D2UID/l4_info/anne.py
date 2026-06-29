@@ -1,3 +1,5 @@
+import datetime
+import json
 import random
 import re
 from pathlib import Path
@@ -11,7 +13,7 @@ from PIL import Image, ImageDraw
 from ..utils.api.models import AnnePlayer2
 from ..utils.error_reply import get_error
 from ..utils.l4_api import l4_api
-from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_26, l4_font_30, l4_font_36
+from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
 from .panel_redesign import (
     MARGIN_X,
     QUARTER_PANEL_CONFIGS,
@@ -24,19 +26,6 @@ TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
 
 def _prepare_background_image(target_w: int = 900, target_h: int = 1200) -> Image.Image:
-    """
-    准备背景图片 - 支持裁剪和缩放
-
-    Args:
-        target_w: 目标宽度
-        target_h: 目标高度
-
-    Returns:
-        处理后的背景图片
-
-    Raises:
-        FileNotFoundError: 未找到背景图像文件
-    """
     bg_path = list((TEXTURED / "bg").glob("*.png"))
     if not bg_path:
         raise FileNotFoundError("没有找到背景图像文件。")
@@ -44,7 +33,6 @@ def _prepare_background_image(target_w: int = 900, target_h: int = 1200) -> Imag
     img = Image.open(random.choice(bg_path))
     w, h = img.size
 
-    # 优先裁剪（保留中间部分），次优缩放
     if w >= target_w and h >= target_h:
         left = max(0, (w - target_w) // 2)
         img = img.crop((left, 0, left + target_w, target_h))
@@ -110,7 +98,6 @@ def _extract_player_stats(detail: AnnePlayer2) -> dict:
 async def get_anne_search_img(keyword: str) -> str:
     detail = await l4_api.search_player(keyword)
 
-    # logger.info(detail)
     if isinstance(detail, int):
         return get_error(detail)
 
@@ -125,9 +112,18 @@ async def get_anne_search_img(keyword: str) -> str:
 
 async def get_anne_player_img(keyword: str, head_img: Image.Image) -> Union[str, bytes]:
     detail = await l4_api.play_info(keyword)
-    quarter_detail = await l4_api.play_info(keyword, quarter="20262")
+    now = datetime.datetime.now()
+    quarter_id = f"{now.year}{(now.month - 1) // 3 + 1}"
+    quarter_label = f"{now.year} Q{(now.month - 1) // 3 + 1}"
+    quarter_detail = await l4_api.play_info(keyword, quarter=quarter_id)
 
-    logger.info(detail)
+    logger.info(f"历史数据: {json.dumps(detail, ensure_ascii=False, default=str)}")
+    if quarter_detail and not isinstance(quarter_detail, int):
+        logger.info(f"赛季数据: {json.dumps(quarter_detail, ensure_ascii=False, default=str)}")
+        qs = quarter_detail["info"].get("quarter_scope", "")
+        if qs:
+            logger.info(f"赛季标识: {qs}")
+            quarter_label = qs
     if isinstance(detail, int):
         return get_error(detail)
     if detail is None:
@@ -135,24 +131,24 @@ async def get_anne_player_img(keyword: str, head_img: Image.Image) -> Union[str,
     if isinstance(quarter_detail, int):
         quarter_detail = None
 
-    return await draw_anne_player_img(detail, head_img, quarter_detail)
+    return await draw_anne_player_img(detail, head_img, quarter_detail, quarter_label)
 
 
 async def draw_anne_player_img(
     detail: AnnePlayer2,
     head_img: Image.Image,
     quarter_detail: AnnePlayer2 | None = None,
+    quarter_label: str = "",
 ):
     if len(detail) == 0:
         return get_error(1001)
 
-    img = _prepare_background_image(900, 1100)
+    img = _prepare_background_image(900, 1600)
 
     overlay = Image.new("RGBA", img.size, (10, 14, 23, 210))
     img = Image.alpha_composite(img.convert("RGBA"), overlay)
     draw = ImageDraw.Draw(img)
 
-    # Title bar with accent gradient
     for i in range(3):
         alpha = int(80 * (1 - i / 3))
         y = i * 40
@@ -165,7 +161,6 @@ async def draw_anne_player_img(
         fill=Colors.TEXT_DARK + (240,),
     )
 
-    # Profile card
     card_x, card_y = 40, 100
     card_w, card_h = 820, 205
     draw.rounded_rectangle(
@@ -176,12 +171,10 @@ async def draw_anne_player_img(
         width=1,
     )
 
-    # Avatar with ring
     avatar_resized = head_img.resize((120, 120))
     avatar_ring = await draw_pic_with_ring(avatar_resized, 120)
     easy_paste(img, avatar_ring, (90, card_y + 25), direction="cc")
 
-    # Player info
     info = detail["info"]
     name = info.get("name", "Unknown")
     steamid = info.get("steamid", "")
@@ -197,7 +190,6 @@ async def draw_anne_player_img(
         fill=Colors.TEXT_LIGHT_GRAY + (200,),
     )
 
-    # Score badge (own row)
     badge_y = card_y + 100
     badge_text = f"积分 {score}"
     draw.rounded_rectangle(
@@ -214,7 +206,6 @@ async def draw_anne_player_img(
         fill=(255, 255, 255, 240),
     )
 
-    # Metadata row
     meta_y = badge_y + 50
     draw.text(
         (170, meta_y + 4),
@@ -229,42 +220,78 @@ async def draw_anne_player_img(
         fill=Colors.TEXT_LIGHT_GRAY + (200,),
     )
 
-    # Decorative anne head
     anne_head = load_image(TEXTURED / "anne_head.jpg").resize((80, 80))
     anne_ring = await draw_pic_with_ring(anne_head, 80)
     easy_paste(img, anne_ring, (780, card_y + 45), direction="cc")
 
-    # Extract total stats and draw
-    stats = _extract_player_stats(detail)
-    img, total_bottom = create_professional_player_stats(
-        img,
-        stats,
-        top_offset=325,
-        draw_footer=False,
+    img_w = img.size[0]
+
+    label = f"赛季 {quarter_label}"
+    lbox = draw.textbbox((0, 0), label, font=l4_font_26)
+    lw = lbox[2] - lbox[0]
+    lh = lbox[3] - lbox[1]
+    cx = (img_w - lw - 40) // 2
+    season_box_y = 325
+    draw.rounded_rectangle(
+        [cx, season_box_y, cx + lw + 40, season_box_y + lh + 20],
+        radius=10,
+        fill=Colors.ACCENT_CYAN + (30,),
+        outline=Colors.ACCENT_CYAN + (180,),
+        width=1,
+    )
+    draw.text(
+        (cx + 20, season_box_y + 9),
+        label,
+        font=l4_font_26,
+        fill=(255, 255, 255, 240),
     )
 
-    # Quarter section
+    season_data_top = season_box_y + lh + 40
+
     if quarter_detail:
         quarter_stats = _extract_player_stats(quarter_detail)
-        quarter_header_y = total_bottom + 15
-        draw.text(
-            (MARGIN_X, quarter_header_y),
-            "— 季度数据 (2026 Q2) —",
-            font=l4_font_26,
-            fill=Colors.ACCENT_CYAN + (240,),
-        )
-        img, final_bottom = create_professional_player_stats(
+        img, season_end = create_professional_player_stats(
             img,
             quarter_stats,
-            top_offset=quarter_header_y + 50,
+            top_offset=season_data_top,
             stat_card_configs=QUARTER_STAT_CARD_CONFIGS,
             panel_configs=QUARTER_PANEL_CONFIGS,
             draw_footer=False,
         )
-    else:
-        final_bottom = total_bottom
+        draw = ImageDraw.Draw(img)
 
-    # Final footer
+        hist_label = "历史总数据"
+        hbox = draw.textbbox((0, 0), hist_label, font=l4_font_26)
+        hw = hbox[2] - hbox[0]
+        hh = hbox[3] - hbox[1]
+        hcx = (img_w - hw - 40) // 2
+        hist_box_y = season_end + 20
+        draw.rounded_rectangle(
+            [hcx, hist_box_y, hcx + hw + 40, hist_box_y + hh + 20],
+            radius=10,
+            fill=Colors.ACCENT_CYAN + (30,),
+            outline=Colors.ACCENT_CYAN + (180,),
+            width=1,
+        )
+        draw.text(
+            (hcx + 20, hist_box_y + 9),
+            hist_label,
+            font=l4_font_26,
+            fill=(255, 255, 255, 240),
+        )
+        total_top = hist_box_y + hh + 40
+    else:
+        total_top = season_data_top
+
+    stats = _extract_player_stats(detail)
+    img, final_bottom = create_professional_player_stats(
+        img,
+        stats,
+        top_offset=total_top,
+        draw_footer=False,
+    )
+    draw = ImageDraw.Draw(img)
+
     footer_y = final_bottom + 20
     img_w = img.size[0]
     draw.rounded_rectangle(
@@ -281,10 +308,7 @@ async def draw_anne_player_img(
         fill=Colors.TEXT_LIGHT_GRAY + (150,),
     )
 
-    # Auto-crop bottom empty space
-    bbox = img.getbbox()
-    if bbox:
-        crop_h = min(bbox[3] + 40, img.size[1])
-        img = img.crop((0, 0, img.size[0], crop_h))
+    crop_h = min(footer_y + 80, img.size[1])
+    img = img.crop((0, 0, img.size[0], crop_h))
 
     return await convert_img(img)

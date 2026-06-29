@@ -41,7 +41,6 @@ async def get_help():
         banner_sub_text="求生之路2真好玩!",
         help_bg=Image.open(TEXT_PATH / "bg.jpg"),
         cag_bg=Image.open(TEXT_PATH / "cag_bg.png"),
-        # item_bg=Image.open(TEXT_PATH / "item.png"),
         icon_path=ICON_PATH,
         footer=get_footer(),
         enable_cache=True,
