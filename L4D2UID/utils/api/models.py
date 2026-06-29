@@ -131,3 +131,31 @@ class AnneOnlinePlayer(TypedDict):
     server: str
     score: str
     playtime: str
+
+
+class AnneAward(TypedDict):
+    category: str
+    icon: str
+    title: str
+    desc: str
+    winner: str
+    steamid: str
+    score: str
+
+
+class AnneStatistics(TypedDict):
+    total_zombie_kills: str
+    total_headshots: str
+    total_melee_kills: str
+    avg_headshot_rate: str
+    smoker: str
+    boomer: str
+    hunter: str
+    spitter: str
+    jockey: str
+    charger: str
+    rank_players: str
+    rank_p50: str
+    rank_p90: str
+    rank_p99: str
+    rank_max: str

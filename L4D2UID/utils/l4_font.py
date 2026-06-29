@@ -6,6 +6,7 @@ def l4_font_main(size: int) -> ImageFont.FreeTypeFont:
     return l4_font(size)
 
 
+l4_font_16 = l4_font_main(16)
 l4_font_20 = l4_font_main(20)
 l4_font_22 = l4_font_main(22)
 l4_font_23 = l4_font_main(23)

@@ -8,8 +8,9 @@ from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
 from httpx import AsyncClient, ConnectError
 
-from .api import ANNEPLAYERAPI, ANNESEARCHAPI, ANNESTATUSAPI
+from .api import ANNEAWARDSAPI, ANNEPLAYERAPI, ANNESEARCHAPI, ANNESTATISTICSAPI, ANNESTATUSAPI
 from .models import (
+    AnneAward,
     AnneOnlinePlayer,
     AnnePlayer2,
     AnnePlayerDetail,
@@ -18,6 +19,7 @@ from .models import (
     AnnePlayerInfAvg,
     AnnePlayerInfo,
     AnnePlayerSur,
+    AnneStatistics,
     AnneStatus,
     UserSearch,
 )
@@ -423,4 +425,110 @@ class L4D2Api:
                     )
                 )
             return players
+        return 401
+
+    async def get_awards(self) -> Union[List[AnneAward], int]:
+        data = await self._l4_request(ANNEAWARDSAPI, out_type="html")
+        if isinstance(data, int):
+            return data
+        if isinstance(data, bytes):
+            soup = BeautifulSoup(data, "lxml")
+            import re
+
+            awards: List[AnneAward] = []
+            for cat_div in soup.find_all("div", style=re.compile(r"margin:\s*2rem\s+0\s+0\.8rem")):
+                category = cat_div.text.strip()
+                grid = cat_div.find_next_sibling("div", class_="awards-grid")
+                if not grid:
+                    continue
+                for card in grid.find_all("div", class_="award-card"):
+                    icon = card.find("div", class_="award-icon")
+                    info = card.find("div", class_="award-info")
+                    if not info:
+                        continue
+                    title = info.find("div", class_="award-title")
+                    desc = info.find("div", class_="award-desc")
+                    winner_el = info.find("div", class_="winner")
+                    winner = steamid = score = ""
+                    if winner_el:
+                        wlink = winner_el.find("a", class_="winner-name")
+                        if wlink:
+                            winner = wlink.text.strip()
+                            href = wlink.get("href", "")
+                            from urllib.parse import parse_qs, urlparse
+
+                            qs = parse_qs(urlparse(href).query)
+                            steamid = qs.get("steamid", [""])[0]
+                        wval = winner_el.find("div", class_="winner-val")
+                        if wval:
+                            score = wval.text.strip().replace("成绩:", "").strip()
+                    awards.append(
+                        cast(
+                            AnneAward,
+                            {
+                                "category": category,
+                                "icon": icon.text.strip() if icon else "",
+                                "title": title.text.strip() if title else "",
+                                "desc": desc.text.strip() if desc else "",
+                                "winner": winner,
+                                "steamid": steamid,
+                                "score": score,
+                            },
+                        )
+                    )
+            return awards
+        return 401
+
+    async def get_statistics(self, rank_days: int = 30) -> Union[AnneStatistics, int]:
+        data = await self._l4_request(ANNESTATISTICSAPI, params={"rank_days": rank_days}, out_type="html")
+        if isinstance(data, int):
+            return data
+        if isinstance(data, bytes):
+            soup = BeautifulSoup(data, "lxml")
+            boxes = soup.find_all("div", class_="stat-box")
+            stats: dict[str, str] = {}
+            for box in boxes:
+                h3 = box.find("h3")
+                val = box.find("div", class_="val")
+                if h3 and val:
+                    stats[h3.text.strip()] = val.text.strip()
+
+            si_kills: dict[str, str] = {}
+            infected = soup.find("div", class_="infected-grid")
+            if infected:
+                for ibox in infected.find_all("div", class_="infected-box"):
+                    name = ibox.find("div", class_="name")
+                    val = ibox.find("div", class_="val")
+                    if name and val:
+                        si_kills[name.text.strip()] = val.text.strip()
+
+            summary: dict[str, str] = {}
+            rank_summary = soup.find("div", class_="rank-trend-summary")
+            if rank_summary:
+                for hm in rank_summary.find_all("div", class_="history-metric"):
+                    label = hm.find("div", class_="label")
+                    value = hm.find("div", class_="value")
+                    if label and value:
+                        summary[label.text.strip()] = value.text.strip()
+
+            return cast(
+                AnneStatistics,
+                {
+                    "total_zombie_kills": stats.get("建服以来总击杀丧尸", "0"),
+                    "total_headshots": stats.get("全服总爆头数", "0"),
+                    "total_melee_kills": stats.get("全服总近战击杀", "0"),
+                    "avg_headshot_rate": stats.get("全服平均爆头率", "0%"),
+                    "smoker": si_kills.get("Smoker", "0"),
+                    "boomer": si_kills.get("Boomer", "0"),
+                    "hunter": si_kills.get("Hunter", "0"),
+                    "spitter": si_kills.get("Spitter", "0"),
+                    "jockey": si_kills.get("Jockey", "0"),
+                    "charger": si_kills.get("Charger", "0"),
+                    "rank_players": summary.get("玩家数", "0"),
+                    "rank_p50": summary.get("中位数", "0"),
+                    "rank_p90": summary.get("P90", "0"),
+                    "rank_p99": summary.get("P99", "0"),
+                    "rank_max": summary.get("最高分", "0"),
+                },
+            )
         return 401

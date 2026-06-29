@@ -2,6 +2,8 @@ ANNEHOST = "https://anne.trygek.com"
 ANNEAPIHOST = f"{ANNEHOST}/stats"
 
 ANNESTATUSAPI = f"{ANNEAPIHOST}/"
+ANNESTATISTICSAPI = f"{ANNEAPIHOST}/statistics/"
+ANNEAWARDSAPI = f"{ANNEAPIHOST}/awards/"
 ANNESEARCHAPI = f"{ANNEAPIHOST}/ranking/search.php"
 ANNEPLAYERAPI = f"{ANNEAPIHOST}/ranking/player.php"
 

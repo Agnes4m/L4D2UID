@@ -59,6 +59,14 @@
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
+      },
+      {
+        "name": "统计",
+        "desc": "查看服务器荣誉殿堂（各项最佳玩家记录）",
+        "eg": "统计",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
       }
     ]
   }

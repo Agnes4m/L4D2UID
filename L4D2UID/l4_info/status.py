@@ -1,13 +1,13 @@
 import random
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 from gsuid_core.utils.image.convert import convert_img
 from gsuid_core.utils.image.image_tools import draw_pic_with_ring, easy_paste
 from PIL import Image, ImageDraw
 
-from ..utils.api.models import AnneOnlinePlayer, AnneStatus
-from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
+from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatistics, AnneStatus
+from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
 from .panel_redesign import MARGIN_X, draw_dark_stat_card
 from .pil_utils import Colors, load_image
 
@@ -61,8 +61,8 @@ async def draw_server_status_img(
     )
 
     table_top = section_y + 40
-    col_x = [MARGIN_X, 85, 290, 415, 600, 725]
-    headers = ["#", "玩家", "模式", "服务器", "积分", "游玩时间"]
+    col_x = [MARGIN_X, 85, 360, 720]
+    headers = ["#", "玩家", "服务器", "积分"]
     draw.rounded_rectangle(
         [MARGIN_X - 5, table_top - 8, w - MARGIN_X + 5, table_top + 30],
         radius=6,
@@ -81,9 +81,6 @@ async def draw_server_status_img(
                 [MARGIN_X - 5, ry - 4, w - MARGIN_X + 5, ry + row_h - 4],
                 fill=(255, 255, 255, 8),
             )
-        mode = p["mode"]
-        if len(mode) > 6:
-            mode = mode[:4] + mode[-2:]
         server = p["server"]
         if "#" in server:
             server = server[server.index("#") :]
@@ -91,12 +88,72 @@ async def draw_server_status_img(
             server = ""
         draw.text((col_x[0], ry), p["rank"], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
         draw.text((col_x[1], ry), p["name"], font=l4_font_20, fill=Colors.ACCENT_CYAN + (240,))
-        draw.text((col_x[2], ry), mode, font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
-        draw.text((col_x[3], ry), server[:20], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
-        draw.text((col_x[4], ry), p["score"], font=l4_font_20, fill=Colors.ACCENT_CYAN + (240,))
-        draw.text((col_x[5], ry), p["playtime"], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
+        draw.text((col_x[2], ry), server[:30], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
+        draw.text((col_x[3], ry), p["score"], font=l4_font_20, fill=Colors.ACCENT_CYAN + (240,))
 
     footer_y = table_top + 38 + min(len(players), 30) * row_h + 25
+    draw.rounded_rectangle(
+        [MARGIN_X, footer_y, w - MARGIN_X, footer_y + 40],
+        radius=8,
+        fill=Colors.PROFESSIONAL_BG + (200,),
+        outline=Colors.PROFESSIONAL_BORDER + (80,),
+        width=1,
+    )
+    draw.text(
+        (MARGIN_X + 15, footer_y + 10),
+        "数据来源: anne.trygek.com",
+        font=l4_font_20,
+        fill=Colors.TEXT_LIGHT_GRAY + (150,),
+    )
+
+    crop_h = min(footer_y + 80, img.size[1])
+    img = img.crop((0, 0, img.size[0], crop_h))
+    return await convert_img(img)
+
+
+async def draw_awards_img(awards: List[AnneAward]) -> Union[str, bytes]:
+    img = _prepare_bg(900, 1800)
+    draw = ImageDraw.Draw(img)
+    w, _ = img.size
+
+    for i in range(3):
+        draw.rectangle([(0, i * 40), (900, i * 40 + 40)], fill=(56, 189, 248, int(80 * (1 - i / 3))))
+    draw.text((40, 22), "Anne 电信服 · 服务器荣誉殿堂", font=l4_font_30, fill=Colors.TEXT_DARK + (240,))
+
+    y = 140
+    categories: Dict[str, List[AnneAward]] = {}
+    for a in awards:
+        categories.setdefault(a["category"], []).append(a)
+
+    cw, ch, cgap = 265, 123, 12
+    for cat, items in categories.items():
+        draw.text((MARGIN_X, y), cat, font=l4_font_24, fill=Colors.ACCENT_CYAN + (240,))
+        y += 32
+        for idx, a in enumerate(items):
+            if y > 1720:
+                break
+            col = idx % 3
+            row = idx // 3
+            cx = MARGIN_X + col * (cw + cgap)
+            cy = y + row * (ch + cgap)
+            draw.rounded_rectangle(
+                [cx, cy, cx + cw, cy + ch],
+                radius=8,
+                fill=Colors.PROFESSIONAL_BG + (220,),
+                outline=Colors.PROFESSIONAL_BORDER + (100,),
+                width=1,
+            )
+            draw.text((cx + 10, cy + 8), a["title"], font=l4_font_22, fill=Colors.ACCENT_CYAN + (240,))
+            desc = a["desc"]
+            d1 = desc[:14]
+            d2 = desc[14:28]
+            draw.text((cx + 10, cy + 32), d1, font=l4_font_16, fill=Colors.TEXT_LIGHT_GRAY + (180,))
+            draw.text((cx + 10, cy + 50), d2, font=l4_font_16, fill=Colors.TEXT_LIGHT_GRAY + (180,))
+            draw.text((cx + 10, cy + 70), a["winner"], font=l4_font_20, fill=Colors.TEXT_DARK + (240,))
+            draw.text((cx + 10, cy + 94), f"成绩: {a['score']}", font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
+        y += ((len(items) + 2) // 3) * (ch + cgap) + 15
+
+    footer_y = y + 10
     draw.rounded_rectangle(
         [MARGIN_X, footer_y, w - MARGIN_X, footer_y + 40],
         radius=8,
