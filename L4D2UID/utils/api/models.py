@@ -112,3 +112,22 @@ class AnnePlayer2(TypedDict):
     inf_avg: AnnePlayerInfAvg
     sur: AnnePlayerSur
     inf: AnnePlayerInf
+
+
+class AnneStatus(TypedDict):
+    total_players: str
+    total_kills: str
+    total_headshots: str
+    online_now: str
+    today_online: str
+    active_30d: str
+
+
+class AnneOnlinePlayer(TypedDict):
+    rank: str
+    name: str
+    steamid: str
+    mode: str
+    server: str
+    score: str
+    playtime: str

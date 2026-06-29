@@ -40,9 +40,9 @@ def draw_dark_stat_card(
     )
 
     value_text = str(value)
-    if len(value_text) > 8:
+    if len(value_text) > 9:
         vfont = l4_font_24
-    elif len(value_text) > 6:
+    elif len(value_text) > 7:
         vfont = l4_font_28
     else:
         vfont = l4_font_32

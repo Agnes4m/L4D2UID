@@ -8,8 +8,9 @@ from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
 from httpx import AsyncClient, ConnectError
 
-from .api import ANNEPLAYERAPI, ANNESEARCHAPI
+from .api import ANNEPLAYERAPI, ANNESEARCHAPI, ANNESTATUSAPI
 from .models import (
+    AnneOnlinePlayer,
     AnnePlayer2,
     AnnePlayerDetail,
     AnnePlayerError,
@@ -17,6 +18,7 @@ from .models import (
     AnnePlayerInfAvg,
     AnnePlayerInfo,
     AnnePlayerSur,
+    AnneStatus,
     UserSearch,
 )
 
@@ -350,3 +352,75 @@ class L4D2Api:
                 "error": error_dict,
             }
             return cast(AnnePlayer2, out_dict)
+
+    async def get_server_status(self) -> Union[AnneStatus, int]:
+        data = await self._l4_request(ANNESTATUSAPI, out_type="html")
+        if isinstance(data, int):
+            return data
+        if isinstance(data, bytes):
+            soup = BeautifulSoup(data, "lxml")
+            gstats = soup.find("div", class_="global-stats")
+            if gstats is None:
+                return 401
+            stats: dict[str, str] = {}
+            for card in gstats.find_all("div", class_="gstat"):
+                num = card.find("div", class_="num")
+                label = card.find("div", class_="label")
+                if num and label:
+                    stats[label.text.strip()] = num.text.strip()
+            return cast(
+                AnneStatus,
+                {
+                    "total_players": stats.get("总玩家数", "0"),
+                    "total_kills": stats.get("总击杀数", "0"),
+                    "total_headshots": stats.get("总爆头数", "0"),
+                    "online_now": stats.get("当前在线", "0"),
+                    "today_online": stats.get("今日在线过", "0"),
+                    "active_30d": stats.get("30天内活跃", "0"),
+                },
+            )
+        return 401
+
+    async def get_online_players(self) -> Union[List[AnneOnlinePlayer], int]:
+        data = await self._l4_request(ANNESTATUSAPI, out_type="html")
+        if isinstance(data, int):
+            return data
+        if isinstance(data, bytes):
+            soup = BeautifulSoup(data, "lxml")
+            tbody = soup.find("tbody")
+            if tbody is None:
+                return 401
+            players: List[AnneOnlinePlayer] = []
+            for tr in tbody.find_all("tr"):
+                tds = tr.find_all("td")
+                if len(tds) < 6:
+                    continue
+                rank = tds[0].text.strip()
+                link = tds[1].find("a", class_="player-link")
+                name = link.text.strip() if link else tds[1].text.strip()
+                steamid = ""
+                if link and link.get("href"):
+                    from urllib.parse import parse_qs, urlparse
+
+                    qs = parse_qs(urlparse(link["href"]).query)
+                    steamid = qs.get("steamid", [""])[0]
+                mode = tds[2].text.strip()
+                server = tds[3].text.strip()
+                score = tds[4].text.strip()
+                playtime = tds[5].text.strip()
+                players.append(
+                    cast(
+                        AnneOnlinePlayer,
+                        {
+                            "rank": rank,
+                            "name": name,
+                            "steamid": steamid,
+                            "mode": mode,
+                            "server": server,
+                            "score": score,
+                            "playtime": playtime,
+                        },
+                    )
+                )
+            return players
+        return 401

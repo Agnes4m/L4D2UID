@@ -8,8 +8,10 @@ from gsuid_core.utils.image.image_tools import get_avatar_with_ring
 
 from ..utils.database.models import L4D2Bind
 from ..utils.error_reply import get_error
+from ..utils.l4_api import l4_api
 from .anne import get_anne_player_img, get_anne_search_img
 from .daidai import get_daidai_player_img
+from .status import draw_server_status_img
 
 l4_user_info = SV("L4D2用户信息查询")
 
@@ -74,3 +76,15 @@ async def search_l4_info_msg(bot: Bot, ev: Event):
     if tag == "云":
         search_msg = await get_anne_search_img(arg)
         await bot.send(search_msg)
+
+
+@l4_user_info.on_command(("状态"), block=True)
+async def send_server_status_msg(bot: Bot, ev: Event):
+    status = await l4_api.get_server_status()
+    if isinstance(status, int):
+        return await bot.send(get_error(status))
+    players = await l4_api.get_online_players()
+    if isinstance(players, int):
+        return await bot.send(get_error(players))
+    out_msg = await draw_server_status_img(status, players)
+    await bot.send(out_msg)
