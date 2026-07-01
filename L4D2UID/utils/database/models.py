@@ -6,6 +6,8 @@ from gsuid_core.utils.database.startup import exec_list
 from gsuid_core.webconsole.mount_app import GsAdminModel, PageSchema, site
 from sqlmodel import Field
 
+from ..steam_convert import to_steam64
+
 exec_list.extend(
     [
         'ALTER TABLE L4D2Bind ADD COLUMN steam32 TEXT DEFAULT ""',
@@ -31,12 +33,15 @@ class L4D2Bind(Bind, table=True):
         bot_id,
         steam32: str,
     ) -> int:
-        """更改steam32的参数值"""
+        """更改steam32的参数值，自动补齐steam64到uid字段"""
         try:
             data = await cls.insert_data(user_id, bot_id, steam32=steam32)
         except Exception as e:
             logger.error(e)
             data = await cls.update_data(user_id, bot_id, steam32=steam32)
+        if steam32:
+            steam64 = to_steam64(steam32)
+            await cls.update_data(user_id, bot_id, uid=steam64)
         return data
 
     @classmethod

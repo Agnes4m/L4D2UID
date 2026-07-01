@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
 from httpx import AsyncClient, ConnectError
 
-from .api import ANNEAWARDSAPI, ANNEPLAYERAPI, ANNESEARCHAPI, ANNESTATISTICSAPI, ANNESTATUSAPI
+from .api import ANNEAWARDSAPI, ANNEPLAYERAPI, ANNESEARCHAPI, ANNESTATISTICSAPI, ANNESTATUSAPI, API58PLAYER
 from .models import (
     AnneAward,
     AnneOnlinePlayer,
@@ -21,6 +21,7 @@ from .models import (
     AnnePlayerSur,
     AnneStatistics,
     AnneStatus,
+    Player58Response,
     UserSearch,
 )
 
@@ -116,9 +117,11 @@ class L4D2Api:
             soup = BeautifulSoup(data, "lxml")
             tbody = soup.find("tbody")
             if tbody is None:
+                logger.warning(f"[l4] 搜索页面无tbody: {data[:500]}")
                 return 401
             tr_list = tbody.find_all("tr")
             if not tr_list:
+                logger.warning(f"[l4] 搜索页面tbody为空: {data[:500]}")
                 return 401
 
             out_list: List[UserSearch] = []
@@ -141,6 +144,7 @@ class L4D2Api:
                 }
                 out_list.append(cast(UserSearch, search_info))
         else:
+            logger.warning(f"[l4] 搜索数据非bytes: {type(data)}")
             return 401
         return out_list[:5]
 
@@ -181,6 +185,7 @@ class L4D2Api:
 
             profile = soup.find("div", class_="profile-header")
             if profile is None:
+                logger.warning(f"[l4] 玩家页面无profile-header: {data[:300]}")
                 return 401
             avatar_img = profile.find("img", class_="player-avatar")
             avatar = avatar_img.get("src", "") if avatar_img else ""
@@ -355,6 +360,35 @@ class L4D2Api:
             }
             return cast(AnnePlayer2, out_dict)
 
+    async def play_info_58(self, steam_id: str) -> Union[Player58Response, int]:
+        for attempt in range(3):
+            try:
+                async with AsyncClient(verify=self.ssl_verify) as client:
+                    resp = await client.get(
+                        API58PLAYER,
+                        params={"steamid": steam_id},
+                        headers=self._HEADER,
+                        timeout=60,
+                    )
+                break
+            except ConnectError as e:
+                logger.warning(f"[l4] 58请求失败 (第{attempt + 1}/3次): {e}")
+                if attempt < 2:
+                    await sleep(2)
+                else:
+                    return -1
+        if resp.status_code == 404:
+            return 404
+        try:
+            raw = resp.json()
+        except Exception:
+            return -1
+        if raw.get("code") != 200:
+            return raw.get("code", -1)
+        if not raw.get("data"):
+            return 401
+        return cast(Player58Response, raw["data"])
+
     async def get_server_status(self) -> Union[AnneStatus, int]:
         data = await self._l4_request(ANNESTATUSAPI, out_type="html")
         if isinstance(data, int):
@@ -363,6 +397,7 @@ class L4D2Api:
             soup = BeautifulSoup(data, "lxml")
             gstats = soup.find("div", class_="global-stats")
             if gstats is None:
+                logger.warning(f"[l4] 状态页无global-stats: {data[:300]}")
                 return 401
             stats: dict[str, str] = {}
             for card in gstats.find_all("div", class_="gstat"):
@@ -391,6 +426,7 @@ class L4D2Api:
             soup = BeautifulSoup(data, "lxml")
             tbody = soup.find("tbody")
             if tbody is None:
+                logger.warning(f"[l4] 在线玩家页无tbody: {data[:300]}")
                 return 401
             players: List[AnneOnlinePlayer] = []
             for tr in tbody.find_all("tr"):

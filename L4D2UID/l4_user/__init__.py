@@ -3,9 +3,12 @@ from gsuid_core.logger import logger
 from gsuid_core.utils.message import send_diff_msg
 
 from ..utils.database.models import L4D2Bind
+from ..utils.l4_config import l4d2_config
+from ..utils.steam_convert import to_steam32
 
 l4_user_bind = SV("L4D2用户绑定")
 l4_switch_paltform = SV("L4D2切换平台")
+l4_admin = SV("L4D2管理", pm=2)
 
 
 @l4_user_bind.on_command(
@@ -67,6 +70,9 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
                 return await bot.send("该命令需要带上正确的uid!(steam64位id)\n如果不知道, 可以使用[l4搜索 xxx]查询uid")
 
             data = await L4D2Bind.insert_uid(qid, ev.bot_id, uid, ev.group_id, is_digit=False)
+            if data == 0:
+                steam32 = to_steam32(uid)
+                await L4D2Bind.update_data(qid, ev.bot_id, steam32=steam32)
             return await send_diff_msg(
                 bot,
                 data,
@@ -80,6 +86,8 @@ async def send_l4_bind_uid_msg(bot: Bot, ev: Event):
         elif "切换" in ev.command:
             retcode = await L4D2Bind.switch_uid_by_game(qid, ev.bot_id, uid)
             if retcode == 0:
+                steam32 = to_steam32(uid)
+                await L4D2Bind.update_data(qid, ev.bot_id, steam32=steam32)
                 return await bot.send(f"[L4] 切换UID{uid}成功！")
             else:
                 return await bot.send(f"[L4] 尚未绑定该UID{uid}")
@@ -153,3 +161,16 @@ async def send_l4_switch_paltform_msg(bot: Bot, ev: Event):
         return await bot.send("[l4] 切换呆呆服务器成功！")
     else:
         return await bot.send("[l4] 平台错误！")
+
+
+@l4_admin.on_command(
+    ("平台设置"),
+    block=True,
+)
+async def send_l4_set_platform_msg(bot: Bot, ev: Event):
+    platform = ev.text.strip()
+    valid = {"电信anne", "呆呆", "58"}
+    if platform not in valid:
+        return await bot.send(f"[l4] 无效平台！可选: {'/'.join(valid)}")
+    l4d2_config.set_config("platform", platform)
+    return await bot.send(f"[l4] 全局平台已切换为: {platform}")

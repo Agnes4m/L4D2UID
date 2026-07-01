@@ -4,7 +4,7 @@
     "data": [
       {
         "name": "绑定",
-        "desc": "绑定你的steam UID",
+        "desc": "绑定你的steam UID（支持32位/64位自动识别）",
         "eg": "绑定 STEAM_1:1xxx",
         "need_ck": false,
         "need_sk": false,
@@ -13,7 +13,7 @@
       {
         "name": "删除uid",
         "desc": "删除你的steam UID",
-        "eg": "删除STEAM_1:1xxx",
+        "eg": "删除uid STEAM_1:1xxx",
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
@@ -21,23 +21,60 @@
       {
         "name": "切换uid",
         "desc": "切换你的steam UID",
-        "eg": "切换STEAM_1:1xxx",
+        "eg": "切换uid STEAM_1:1xxx",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "搜索",
+        "desc": "搜索steam玩家信息",
+        "eg": "搜索 xxx",
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
       }
     ]
   },
-  "电信anne服功能": {
-    "desc": "默认查绑定战绩，也可以后带uid",
+  "数据查询": {
+    "desc": "默认查绑定steamid战绩，也可后带uid查询他人",
     "data": [
       {
-        "name": "查询(anne)",
-        "desc": "查询数据一览",
+        "name": "查询",
+        "desc": "查询玩家游戏数据（电信anne / 呆呆 / 58服）",
         "eg": "查询",
-        "need_ck": true,
+        "need_ck": false,
         "need_sk": false,
         "need_admin": false
+      },
+      {
+        "name": "切换电信anne",
+        "desc": "切换个人查询平台为电信anne",
+        "eg": "切换电信anne",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "切换58",
+        "desc": "切换个人查询平台为58服",
+        "eg": "切换58",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      }
+    ]
+  },
+  "管理": {
+    "desc": "仅管理员可用",
+    "data": [
+      {
+        "name": "平台设置",
+        "desc": "设置全局查询平台（电信anne/呆呆/58）",
+        "eg": "平台设置 58",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": true
       }
     ]
   },
