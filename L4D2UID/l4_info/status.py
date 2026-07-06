@@ -3,13 +3,12 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from gsuid_core.utils.image.convert import convert_img
-from gsuid_core.utils.image.image_tools import draw_pic_with_ring, easy_paste
 from PIL import Image, ImageDraw
 
-from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatistics, AnneStatus
-from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
+from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatus
+from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30
 from .panel_redesign import MARGIN_X, draw_dark_stat_card
-from .pil_utils import Colors, load_image
+from .pil_utils import Colors
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 

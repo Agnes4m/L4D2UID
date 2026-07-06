@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 from ..utils.api.models import AnnePlayer2
 from ..utils.error_reply import get_error
 from ..utils.l4_api import l4_api
-from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
+from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_26, l4_font_30, l4_font_36
 from .panel_redesign import (
     MARGIN_X,
     QUARTER_PANEL_CONFIGS,

@@ -1,8 +1,7 @@
 import json as js
+from asyncio import sleep
 from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional, Union, cast
-
-from asyncio import sleep
 
 from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
