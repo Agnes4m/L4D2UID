@@ -16,6 +16,7 @@ dependencies = [
     "playwright",
     "aiofiles",
     "sqlmodel",
+    "cloudscraper>=1.2.71",
 ]
 
 [build-system]

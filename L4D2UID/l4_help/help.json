@@ -104,6 +104,30 @@
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
+      },
+      {
+        "name": "地图",
+        "desc": "浏览/搜索 L4D2 第三方地图（来自 gamemaps.com）；默认可浏览模组用 l4地图 mod",
+        "eg": "地图 / 地图 热门 / 地图 co-op / 地图 mod",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "地图详情",
+        "desc": "查看地图详细信息（需提供地图ID）",
+        "eg": "地图详情 35965",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
+      },
+      {
+        "name": "地图下载",
+        "desc": "下载地图文件到本地（文件较大，约 100-500MB）",
+        "eg": "地图下载 25582",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
       }
     ]
   }
