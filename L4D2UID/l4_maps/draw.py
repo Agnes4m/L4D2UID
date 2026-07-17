@@ -232,7 +232,7 @@ async def draw_maps_list(
         # 状态标签 (Updated / New 等)
         if gm["states"]:
             state_x = cx + 12
-            state_y = thumb_y + 32
+            state_y = thumb_y + 38
             for st in gm["states"]:
                 st_lower = st.lower()
                 if "update" in st_lower:
@@ -325,77 +325,83 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
 
     d: MapDetail = detail
 
-    # ── 预计算高度 ──
-    desc_len = len(d.get("description", ""))
-    desc_lines = min(desc_len, 500) // 50 + 1 if desc_len else 0
-    ss_rows = 1 if d.get("screenshots") else 0
-    est_h = 400 + desc_lines * 22 + ss_rows * 140
-    img = _prepare_bg(960, max(800, est_h))
+    # ── 预计算高度（留足余量） ──
+    desc_len = min(len(d.get("description", "")), 500)
+    desc_lines = desc_len // 50 + 2 if desc_len else 0
+    has_ss = 1 if d.get("screenshots") else 0
+    est_h = 500 + desc_lines * 24 + has_ss * 150 + 100
+    img = _prepare_bg(960, max(900, est_h))
     draw = ImageDraw.Draw(img)
 
     _draw_header(draw, "地图详情")
 
     x = MARGIN_X
     y = 100
-    max_w = 960 - 2 * x  # 可用宽度
+    max_w = 960 - 2 * x  # 880px
 
-    # ── 类型标签 ──
+    # ══════════════════════════════════════════
+    # 1. 类型标签
+    # ══════════════════════════════════════════
     tl = d.get("type_label", "")
     if tl:
         draw.rounded_rectangle(
             [x, y, x + 90, y + 28], radius=4, fill=(56, 189, 248, 200),
         )
         draw.text((x + 6, y + 3), tl, font=l4_font_20, fill=(255, 255, 255, 240))
-        y += 40
+        y += 44
 
-    # ── 标题 ──
+    # ══════════════════════════════════════════
+    # 2. 标题
+    # ══════════════════════════════════════════
     draw.text((x, y), d["title"], font=l4_font_30, fill=Colors.ACCENT_CYAN + (240,))
-    y += 40
+    y += 44
 
-    # ── 编号 + 作者 (同行) ──
+    # ══════════════════════════════════════════
+    # 3. 编号 + 作者（同行）
+    # ══════════════════════════════════════════
     id_text = f"#{d['id']}"
-    author_text = d.get("author", "")
-    if author_text:
-        id_author = f"{id_text}   |   作者: {author_text}"
+    author = d.get("author", "")
+    if author:
+        line = f"{id_text}   |   作者: {author}"
     else:
-        id_author = id_text
-    draw.text((x, y), id_author, font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
-    y += 32
+        line = id_text
+    draw.text((x, y), line, font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
+    y += 36
 
-    # ── 统计行（支持自动换行） ──
-    stat_parts = []
+    # ══════════════════════════════════════════
+    # 4. 统计行
+    # ══════════════════════════════════════════
+    parts = []
     if d.get("views"):
-        stat_parts.append(f"浏览: {d['views']}")
+        parts.append(f"浏览: {d['views']}")
     if d.get("reviews_count"):
-        stat_parts.append(f"评价: {d['reviews_count']}")
+        parts.append(f"评价: {d['reviews_count']}")
     if d.get("awards_count"):
-        stat_parts.append(f"获奖: {d['awards_count']}")
+        parts.append(f"获奖: {d['awards_count']}")
     if d.get("platform"):
-        stat_parts.append(f"平台: {d['platform']}")
+        parts.append(f"平台: {d['platform']}")
     if d.get("file_size"):
-        stat_parts.append(f"大小: {d['file_size']}")
+        parts.append(f"大小: {d['file_size']}")
     if d.get("version"):
-        stat_parts.append(f"版本: {d['version']}")
+        parts.append(f"版本: {d['version']}")
 
-    if stat_parts:
-        separator = "  |  "
-        sep_w = draw.textbbox((0, 0), separator, font=l4_font_20)[2]
-
-        # 计算分行
-        lines: list[list[str]] = [[]]
-        line_w = 0
-        for part in stat_parts:
-            pw = draw.textbbox((0, 0), part, font=l4_font_20)[2]
-            need_sep = len(lines[-1]) > 0
-            gap = sep_w if need_sep else 0
-            if line_w + gap + pw > max_w:
-                lines.append([part])
-                line_w = pw
+    if parts:
+        sep = "  |  "
+        # 分行
+        rows_list: list[list[str]] = [[]]
+        cur_w = 0
+        for p in parts:
+            pw = draw.textbbox((0, 0), p, font=l4_font_20)[2]
+            gap = sep if len(rows_list[-1]) > 0 else ""
+            gw = draw.textbbox((0, 0), gap, font=l4_font_20)[2]
+            if cur_w + gw + pw > max_w:
+                rows_list.append([p])
+                cur_w = pw
             else:
-                lines[-1].append(part)
-                line_w += gap + pw
+                rows_list[-1].append(p)
+                cur_w += gw + pw
 
-        box_h = max(36, len(lines) * 22 + 10)
+        box_h = 38 + (len(rows_list) - 1) * 24
         draw.rounded_rectangle(
             [x, y, 960 - x, y + box_h],
             radius=6,
@@ -403,75 +409,83 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
             outline=Colors.PROFESSIONAL_BORDER + (80,),
             width=1,
         )
-        for li, line_parts in enumerate(lines):
-            line_text = separator.join(line_parts)
+        for ri, row_parts in enumerate(rows_list):
+            row_text = sep.join(row_parts)
             draw.text(
-                (x + 12, y + 6 + li * 22),
-                line_text,
+                (x + 12, y + 8 + ri * 24),
+                row_text,
                 font=l4_font_20,
                 fill=Colors.TEXT_LIGHT_GRAY + (220,),
             )
-        y += box_h + 10
+        y += box_h + 16
 
-    # ── 截图缩略图（1行4张） ──
+    # ══════════════════════════════════════════
+    # 5. 截图（1行4张）
+    # ══════════════════════════════════════════
     screenshots = d.get("screenshots", [])
     if screenshots:
         draw.text((x, y), "截图:", font=l4_font_20, fill=Colors.ACCENT_CYAN + (200,))
-        y += 26
-
+        y += 30
         ss_w = 210
         ss_h = 120
         ss_gap = 10
         for idx, ss_url in enumerate(screenshots[:4]):
             sx = x + idx * (ss_w + ss_gap)
-            img_dl = await _download_thumb(ss_url)
-            if img_dl:
-                img_dl = img_dl.resize((ss_w, ss_h))
-                img.paste(img_dl, (sx, y), img_dl)
+            sy = y
+            ss_img = await _download_thumb(ss_url)
+            if ss_img:
+                ss_img = ss_img.resize((ss_w, ss_h))
+                img.paste(ss_img, (sx, sy), ss_img)
             else:
                 draw.rounded_rectangle(
-                    [sx, y, sx + ss_w, y + ss_h],
+                    [sx, sy, sx + ss_w, sy + ss_h],
                     radius=4, fill=(30, 40, 60, 200),
                     outline=Colors.PROFESSIONAL_BORDER + (80,), width=1,
                 )
-                draw.text((sx + ss_w // 2 - 28, y + ss_h // 2 - 10),
+                draw.text((sx + ss_w // 2 - 28, sy + ss_h // 2 - 10),
                           "无预览", font=l4_font_16,
                           fill=Colors.TEXT_LIGHT_GRAY + (120,))
-        y += ss_h + 14
+        y += ss_h + 20
 
-    # ── 描述（前500字） ──
+    # ══════════════════════════════════════════
+    # 6. 描述（前500字）
+    # ══════════════════════════════════════════
     desc = d.get("description", "")
     if desc:
         draw.text((x, y), "描述:", font=l4_font_20, fill=Colors.ACCENT_CYAN + (200,))
-        y += 26
-        short_desc = desc[:500]
-        cpl = 50  # chars per line
-        for i in range(0, len(short_desc), cpl):
-            line = short_desc[i:i + cpl]
+        y += 28
+        short = desc[:500]
+        cpl = 50
+        for i in range(0, len(short), cpl):
+            line = short[i:i + cpl]
             draw.text((x + 8, y), line, font=l4_font_16,
                       fill=Colors.TEXT_LIGHT_GRAY + (180,))
             y += 22
-            if y > 900:
+            if y > 1050:
                 break
-        y += 6
+        y += 10
 
-    # ── 标签（自动换行） ──
+    # ══════════════════════════════════════════
+    # 7. 标签（自动换行）
+    # ══════════════════════════════════════════
     tags = d.get("tags", [])
     if tags:
-        tag_text_all = "  ".join(tags)
+        all_tags = "  ".join(tags)
         draw.text((x, y), "标签:", font=l4_font_20, fill=Colors.ACCENT_CYAN + (180,))
-        y += 22
-        cpl_tag = 60
-        for i in range(0, len(tag_text_all), cpl_tag):
-            line = tag_text_all[i:i + cpl_tag]
-            draw.text((x + 8, y), line, font=l4_font_16,
+        y += 26
+        tpl = 60
+        for i in range(0, len(all_tags), tpl):
+            chunk = all_tags[i:i + tpl]
+            draw.text((x + 8, y), chunk, font=l4_font_16,
                       fill=Colors.TEXT_LIGHT_GRAY + (160,))
             y += 20
-            if y > 950:
+            if y > 1100:
                 break
-        y += 6
+        y += 8
 
-    # ── 文件信息 ──
+    # ══════════════════════════════════════════
+    # 8. 文件信息
+    # ══════════════════════════════════════════
     info_bits = []
     if d.get("file_name"):
         info_bits.append(d["file_name"])
@@ -480,10 +494,12 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
     if info_bits:
         draw.text((x, y), "  |  ".join(info_bits[:3]), font=l4_font_16,
                   fill=Colors.TEXT_LIGHT_GRAY + (140,))
-        y += 26
+        y += 30
 
-    # ── 底部 ──
-    _draw_footer(draw, max(y + 12, 700))
+    # ══════════════════════════════════════════
+    # 9. 底部
+    # ══════════════════════════════════════════
+    _draw_footer(draw, max(y + 10, 780))
     crop_h = min(y + 70, img.size[1])
     img = img.crop((0, 0, img.size[0], crop_h))
     return await convert_img(img)
