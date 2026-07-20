@@ -1,10 +1,6 @@
 from pathlib import Path
-from typing import Optional, Tuple, Union, cast
 
-from gsuid_core.data_store import get_res_path
-from gsuid_core.logger import logger
-from gsuid_core.utils.image.utils import download_pic_to_image
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 _IMAGE_CACHE: dict[Path, Image.Image] = {}
 

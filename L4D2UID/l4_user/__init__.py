@@ -1,5 +1,5 @@
-from gsuid_core.sv import SV, Bot, Event
 from gsuid_core.logger import logger
+from gsuid_core.sv import SV, Bot, Event
 from gsuid_core.utils.message import send_diff_msg
 
 from ..utils.database.models import L4D2Bind

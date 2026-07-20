@@ -22,7 +22,6 @@ async def main(name: str):
 
         await page.set_viewport_size({"width": 900, "height": 1200})
 
-
         new_path = L4PATH.joinpath("daidai_screenshot.png")
         await page.screenshot(path=new_path)  # 保存为图片
         await browser.close()  # 关闭浏览器
