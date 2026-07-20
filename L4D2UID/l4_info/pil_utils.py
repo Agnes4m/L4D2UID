@@ -1,8 +1,53 @@
+import math
+import random
 from pathlib import Path
+from typing import Optional
 
 from PIL import Image
 
 _IMAGE_CACHE: dict[Path, Image.Image] = {}
+
+
+def prepare_bg(
+    texture_dir: Optional[Path] = None,
+    w: int = 900,
+    h: int = 1200,
+) -> Image.Image:
+    """创建背景图：不拉伸，宽度固定，高度不够则平铺、超出则居中裁剪"""
+    if texture_dir is None:
+        texture_dir = Path(__file__).parent / "texture2d" / "anne" / "bg"
+    bg_files = list(texture_dir.glob("*.png"))
+    if not bg_files:
+        bg = Image.new("RGBA", (w, h), (10, 14, 23))
+        overlay = Image.new("RGBA", bg.size, (10, 14, 23, 210))
+        return Image.alpha_composite(bg, overlay)
+
+    src = Image.open(random.choice(bg_files)).convert("RGBA")
+    sw, sh = src.size
+
+    # 1. 按宽度缩放（保持比例）
+    ratio = w / sw
+    new_w = w
+    new_h = int(sh * ratio)
+    src = src.resize((new_w, new_h), Image.LANCZOS)
+
+    # 2. 高度处理
+    if new_h < h:
+        # 平铺至足够高度
+        tiles = math.ceil(h / new_h)
+        canvas = Image.new("RGBA", (w, new_h * tiles))
+        for i in range(tiles):
+            canvas.paste(src, (0, i * new_h))
+        src = canvas
+        # 从顶部开始裁剪
+        src = src.crop((0, 0, w, h))
+    elif new_h > h:
+        # 居中裁剪
+        top = (new_h - h) // 2
+        src = src.crop((0, top, w, top + h))
+
+    overlay = Image.new("RGBA", (w, h), (10, 14, 23, 210))
+    return Image.alpha_composite(src, overlay)
 
 
 class Colors:

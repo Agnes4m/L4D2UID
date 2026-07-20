@@ -3,7 +3,6 @@
 import asyncio
 import functools
 import io
-import random
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -11,7 +10,7 @@ from gsuid_core.logger import logger
 from gsuid_core.utils.image.convert import convert_img
 from PIL import Image, ImageDraw, ImageFont
 
-from ..l4_info.pil_utils import Colors
+from ..l4_info.pil_utils import Colors, prepare_bg
 from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_30
 from .models import GameMap
 
@@ -60,15 +59,8 @@ MAP_COLORS = [
 
 
 def _prepare_bg(w: int = 960, h: int = 1200) -> Image.Image:
-    """创建深色背景"""
-    bg_files = list((TEXTURED / "bg").glob("*.png"))
-    if bg_files:
-        bg_img = Image.open(random.choice(bg_files))
-        bg_img = bg_img.resize((w, h))
-    else:
-        bg_img = Image.new("RGBA", (w, h), (10, 14, 23))
-    overlay = Image.new("RGBA", bg_img.size, (10, 14, 23, 210))
-    return Image.alpha_composite(bg_img.convert("RGBA"), overlay)
+    """创建深色背景（不拉伸，平铺或裁剪）"""
+    return prepare_bg(TEXTURED / "bg", w, h)
 
 
 def _draw_header(draw: ImageDraw.ImageDraw, title: str):

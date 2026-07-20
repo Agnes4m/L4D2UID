@@ -1,4 +1,3 @@
-import random
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
@@ -9,17 +8,13 @@ from PIL import Image, ImageDraw
 from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatus
 from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30
 from .panel_redesign import MARGIN_X, draw_dark_stat_card
-from .pil_utils import Colors
+from .pil_utils import Colors, prepare_bg
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
 
 def _prepare_bg(w: int = 900, h: int = 1200) -> Image.Image:
-    bg = list((TEXTURED / "bg").glob("*.png"))
-    img = Image.open(random.choice(bg))
-    img = img.resize((w, h)) if img.size != (w, h) else img
-    overlay = Image.new("RGBA", img.size, (10, 14, 23, 210))
-    return Image.alpha_composite(img.convert("RGBA"), overlay)
+    return prepare_bg(TEXTURED / "bg", w, h)
 
 
 STAT_CARDS = [

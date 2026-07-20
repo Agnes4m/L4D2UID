@@ -1,6 +1,5 @@
 import datetime
 import json
-import random
 import re
 from pathlib import Path
 from typing import Union
@@ -20,26 +19,13 @@ from .panel_redesign import (
     QUARTER_STAT_CARD_CONFIGS,
     create_professional_player_stats,
 )
-from .pil_utils import Colors, load_image
+from .pil_utils import Colors, load_image, prepare_bg
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
 
 def _prepare_background_image(target_w: int = 900, target_h: int = 1200) -> Image.Image:
-    bg_path = list((TEXTURED / "bg").glob("*.png"))
-    if not bg_path:
-        raise FileNotFoundError("没有找到背景图像文件。")
-
-    img = Image.open(random.choice(bg_path))
-    w, h = img.size
-
-    if w >= target_w and h >= target_h:
-        left = max(0, (w - target_w) // 2)
-        img = img.crop((left, 0, left + target_w, target_h))
-    else:
-        img = img.resize((target_w, target_h))
-
-    return img
+    return prepare_bg(TEXTURED / "bg", target_w, target_h)
 
 
 def _extract_player_stats(detail: AnnePlayer2) -> dict:
@@ -144,9 +130,6 @@ async def draw_anne_player_img(
         return get_error(1001)
 
     img = _prepare_background_image(900, 1600)
-
-    overlay = Image.new("RGBA", img.size, (10, 14, 23, 210))
-    img = Image.alpha_composite(img.convert("RGBA"), overlay)
     draw = ImageDraw.Draw(img)
 
     for i in range(3):

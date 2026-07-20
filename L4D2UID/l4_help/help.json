@@ -128,6 +128,14 @@
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
+      },
+      {
+        "name": "聊天",
+        "desc": "查看 Anne 服务器游戏聊天记录",
+        "eg": "聊天 / 聊天 云1 / 聊天 云1 30",
+        "need_ck": false,
+        "need_sk": false,
+        "need_admin": false
       }
     ]
   }
