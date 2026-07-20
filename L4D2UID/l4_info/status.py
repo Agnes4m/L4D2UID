@@ -1,15 +1,15 @@
 import random
+from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from gsuid_core.utils.image.convert import convert_img
-from gsuid_core.utils.image.image_tools import draw_pic_with_ring, easy_paste
 from PIL import Image, ImageDraw
 
-from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatistics, AnneStatus
-from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
+from ..utils.api.models import AnneAward, AnneOnlinePlayer, AnneStatus
+from ..utils.l4_font import l4_font_16, l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30
 from .panel_redesign import MARGIN_X, draw_dark_stat_card
-from .pil_utils import Colors, load_image
+from .pil_utils import Colors
 
 TEXTURED = Path(__file__).parent / "texture2d" / "anne"
 
@@ -31,6 +31,33 @@ STAT_CARDS = [
     ("30天活跃", "active_30d", Colors.ACCENT_PURPLE),
 ]
 
+# 房间颜色循环
+ROOM_COLORS = [
+    (56, 189, 248),   # 蓝
+    (52, 211, 153),   # 绿
+    (167, 139, 250),  # 紫
+    (251, 113, 133),  # 红
+    (250, 204, 21),   # 黄
+    (45, 212, 191),   # 青
+    (251, 146, 60),   # 橙
+]
+
+
+def _extract_room_key(p: AnneOnlinePlayer) -> Tuple[str, str]:
+    """提取房间标识 (地图名, 模式)"""
+    raw = p.get("server", "")
+    if not raw or raw.strip() == "":
+        return ("连接中...", p.get("mode", ""))
+    # 去掉尾部 #数字
+    idx = raw.find(" #")
+    if idx != -1:
+        map_name = raw[:idx].strip()
+    else:
+        map_name = raw.strip()
+    if not map_name:
+        map_name = "连接中..."
+    return (map_name, p.get("mode", ""))
+
 
 async def draw_server_status_img(
     status: AnneStatus,
@@ -40,10 +67,15 @@ async def draw_server_status_img(
     draw = ImageDraw.Draw(img)
     w, _ = img.size
 
+    # ── 顶部标题 ──
     for i in range(3):
-        draw.rectangle([(0, i * 40), (900, i * 40 + 40)], fill=(56, 189, 248, int(80 * (1 - i / 3))))
+        draw.rectangle(
+            [(0, i * 40), (900, i * 40 + 40)],
+            fill=(56, 189, 248, int(80 * (1 - i / 3))),
+        )
     draw.text((40, 22), "Anne 电信服 · 服务器状态", font=l4_font_30, fill=Colors.TEXT_DARK + (240,))
 
+    # ── 统计卡片 ──
     card_w, card_h, hgap, vgap = 210, 95, 50, 25
     cards_total = 3 * card_w + 2 * hgap
     cards_x = (w - cards_total) // 2
@@ -52,46 +84,107 @@ async def draw_server_status_img(
         y = 80 + (i // 3) * (card_h + vgap)
         draw_dark_stat_card(draw, (x, y), (card_w, card_h), label, str(status[key]), color)
 
+    # ── 按房间分组 ──
+    rooms: Dict[Tuple[str, str], List[AnneOnlinePlayer]] = defaultdict(list)
+    for p in players:
+        key = _extract_room_key(p)
+        rooms[key].append(p)
+
+    # 排序：连接中... 排最后，其余按房间名排序
+    sorted_rooms = sorted(
+        rooms.items(),
+        key=lambda item: (
+            1 if item[0][0] == "连接中..." else 0,
+            item[0][0].lower(),
+        ),
+    )
+
     section_y = 80 + 2 * (card_h + vgap)
     draw.text(
         (MARGIN_X, section_y),
-        f"当前在线玩家  ({status['online_now']} 人)",
+        f"当前在线玩家 ({status['online_now']} 人 / {len(rooms)} 个房间)",
         font=l4_font_26,
         fill=Colors.ACCENT_CYAN + (240,),
     )
 
-    table_top = section_y + 40
-    col_x = [MARGIN_X, 85, 360, 720]
-    headers = ["#", "玩家", "服务器", "积分"]
-    draw.rounded_rectangle(
-        [MARGIN_X - 5, table_top - 8, w - MARGIN_X + 5, table_top + 30],
-        radius=6,
-        fill=(17, 24, 39, 220),
-        outline=(55, 65, 81, 150),
-        width=1,
-    )
-    for j, hdr in enumerate(headers):
-        draw.text((col_x[j], table_top), hdr, font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
+    room_top = section_y + 40
+    room_y = room_top
+    room_color_idx = 0
+    row_h = 26
+    col_w = [20, 195, 60, 60]  # #, 玩家, 积分, 时间
 
-    row_h = 32
-    for i, p in enumerate(players[:30]):
-        ry = table_top + 38 + i * row_h
-        if i % 2 == 0:
-            draw.rectangle(
-                [MARGIN_X - 5, ry - 4, w - MARGIN_X + 5, ry + row_h - 4],
-                fill=(255, 255, 255, 8),
+    for (map_name, mode), members in sorted_rooms:
+        accent = ROOM_COLORS[room_color_idx % len(ROOM_COLORS)]
+        room_color_idx += 1
+
+        # 房间标题栏
+        mode_tag = f"[{mode}]" if mode else ""
+        header_text = f"{map_name}  {mode_tag}  ({len(members)}人)"
+        header_h = 32
+
+        draw.rounded_rectangle(
+            [MARGIN_X, room_y, w - MARGIN_X, room_y + header_h],
+            radius=6,
+            fill=accent + (40,),
+            outline=accent + (120,),
+            width=1,
+        )
+        draw.text(
+            (MARGIN_X + 12, room_y + 4),
+            header_text,
+            font=l4_font_20,
+            fill=accent + (240,),
+        )
+
+        room_y += header_h
+
+        # 玩家列表
+        for pi, p in enumerate(members):
+            ry = room_y + pi * row_h
+            if pi % 2 == 0:
+                draw.rectangle(
+                    [MARGIN_X, ry, w - MARGIN_X, ry + row_h],
+                    fill=(255, 255, 255, 6),
+                )
+
+            # 排名
+            draw.text(
+                (MARGIN_X + col_w[0] // 2 - 8, ry + 3),
+                p["rank"],
+                font=l4_font_16,
+                fill=Colors.TEXT_LIGHT_GRAY + (180,),
             )
-        server = p["server"]
-        if "#" in server:
-            server = server[server.index("#") :]
-        else:
-            server = ""
-        draw.text((col_x[0], ry), p["rank"], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (200,))
-        draw.text((col_x[1], ry), p["name"], font=l4_font_20, fill=Colors.ACCENT_CYAN + (240,))
-        draw.text((col_x[2], ry), server[:30], font=l4_font_20, fill=Colors.TEXT_LIGHT_GRAY + (180,))
-        draw.text((col_x[3], ry), p["score"], font=l4_font_20, fill=Colors.ACCENT_CYAN + (240,))
+            # 玩家名
+            name_text = p["name"][:16]
+            draw.text(
+                (MARGIN_X + col_w[0] + 4, ry + 3),
+                name_text,
+                font=l4_font_16,
+                fill=Colors.TEXT_DARK + (240,),
+            )
+            # 积分
+            draw.text(
+                (MARGIN_X + col_w[0] + col_w[1] + 4, ry + 3),
+                p["score"],
+                font=l4_font_16,
+                fill=accent + (220,),
+            )
+            # 游玩时间
+            draw.text(
+                (MARGIN_X + col_w[0] + col_w[1] + col_w[2] + 4, ry + 3),
+                p["playtime"],
+                font=l4_font_16,
+                fill=Colors.TEXT_LIGHT_GRAY + (140,),
+            )
 
-    footer_y = table_top + 38 + min(len(players), 30) * row_h + 25
+        room_y += len(members) * row_h + 12
+
+        # 如果超出底部就截断
+        if room_y > 1100:
+            break
+
+    # ── 底部 ──
+    footer_y = max(room_y + 20, section_y + 60)
     draw.rounded_rectangle(
         [MARGIN_X, footer_y, w - MARGIN_X, footer_y + 40],
         radius=8,
