@@ -44,19 +44,11 @@ ROOM_COLORS = [
 
 
 def _extract_room_key(p: AnneOnlinePlayer) -> Tuple[str, str]:
-    """提取房间标识 (地图名, 模式)"""
+    """提取房间标识 (完整服务器名, 模式)"""
     raw = p.get("server", "")
     if not raw or raw.strip() == "":
         return ("连接中...", p.get("mode", ""))
-    # 去掉尾部 #数字
-    idx = raw.find(" #")
-    if idx != -1:
-        map_name = raw[:idx].strip()
-    else:
-        map_name = raw.strip()
-    if not map_name:
-        map_name = "连接中..."
-    return (map_name, p.get("mode", ""))
+    return (raw.strip(), p.get("mode", ""))
 
 
 async def draw_server_status_img(
@@ -111,70 +103,82 @@ async def draw_server_status_img(
     room_y = room_top
     room_color_idx = 0
     row_h = 26
-    col_w = [20, 195, 60, 60]  # #, 玩家, 积分, 时间
+    col_w = [20, 160, 90, 70]  # #, 玩家, 分数, 时间
 
     for (map_name, mode), members in sorted_rooms:
         accent = ROOM_COLORS[room_color_idx % len(ROOM_COLORS)]
         room_color_idx += 1
 
-        # 房间标题栏
+        # 房间标题栏（深色不透明底 + 彩色左边条 + 白色文字）
         mode_tag = f"[{mode}]" if mode else ""
         header_text = f"{map_name}  {mode_tag}  ({len(members)}人)"
         header_h = 32
 
+        # 标题背景
         draw.rounded_rectangle(
             [MARGIN_X, room_y, w - MARGIN_X, room_y + header_h],
             radius=6,
-            fill=accent + (40,),
-            outline=accent + (120,),
+            fill=(20, 28, 46, 255),
+            outline=accent + (200,),
             width=1,
         )
+        # 左侧彩色条
+        draw.rounded_rectangle(
+            [MARGIN_X + 2, room_y + 4, MARGIN_X + 6, room_y + header_h - 4],
+            radius=2,
+            fill=accent + (255,),
+        )
+        # 标题文字 — 白色
         draw.text(
-            (MARGIN_X + 12, room_y + 4),
+            (MARGIN_X + 16, room_y + 4),
             header_text,
             font=l4_font_20,
-            fill=accent + (240,),
+            fill=(255, 255, 255, 255),
         )
 
         room_y += header_h
 
-        # 玩家列表
+        # 玩家列表（实心深色交替行 + 白色文字）
         for pi, p in enumerate(members):
             ry = room_y + pi * row_h
+            # 交替行背景：深色/更深色 交替，不透明
             if pi % 2 == 0:
-                draw.rectangle(
-                    [MARGIN_X, ry, w - MARGIN_X, ry + row_h],
-                    fill=(255, 255, 255, 6),
-                )
+                row_bg = (17, 24, 39, 255)
+            else:
+                row_bg = (13, 18, 30, 255)
+            draw.rectangle(
+                [MARGIN_X, ry, w - MARGIN_X, ry + row_h],
+                fill=row_bg,
+            )
 
-            # 排名
+            # 排名 — 浅灰色
             draw.text(
                 (MARGIN_X + col_w[0] // 2 - 8, ry + 3),
                 p["rank"],
                 font=l4_font_16,
-                fill=Colors.TEXT_LIGHT_GRAY + (180,),
+                fill=(200, 200, 200, 255),
             )
-            # 玩家名
+            # 玩家名 — 白色
             name_text = p["name"][:16]
             draw.text(
                 (MARGIN_X + col_w[0] + 4, ry + 3),
                 name_text,
                 font=l4_font_16,
-                fill=Colors.TEXT_DARK + (240,),
+                fill=(255, 255, 255, 255),
             )
-            # 积分
+            # 积分 — 房间主题色 (x右移150px)
             draw.text(
-                (MARGIN_X + col_w[0] + col_w[1] + 4, ry + 3),
+                (MARGIN_X + col_w[0] + col_w[1] + 4 + 200, ry + 3),
                 p["score"],
                 font=l4_font_16,
-                fill=accent + (220,),
+                fill=accent + (255,),
             )
-            # 游玩时间
+            # 游玩时间 — 浅灰 (左移20px)
             draw.text(
-                (MARGIN_X + col_w[0] + col_w[1] + col_w[2] + 4, ry + 3),
+                (MARGIN_X + col_w[0] + col_w[1] + col_w[2] + 4 - 20, ry + 3),
                 p["playtime"],
                 font=l4_font_16,
-                fill=Colors.TEXT_LIGHT_GRAY + (140,),
+                fill=(180, 180, 180, 255),
             )
 
         room_y += len(members) * row_h + 12
