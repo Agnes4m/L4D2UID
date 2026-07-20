@@ -3,6 +3,7 @@ from typing import List, TypedDict
 
 class GameMap(TypedDict):
     """地图列表项"""
+
     id: str
     title: str
     thumb: str
@@ -20,6 +21,7 @@ class GameMap(TypedDict):
 
 class MapDetail(TypedDict):
     """地图详情"""
+
     id: str
     title: str
     type_label: str  # e.g. "5 Maps", "Mod"

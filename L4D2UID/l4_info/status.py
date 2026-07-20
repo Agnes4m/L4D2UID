@@ -33,13 +33,13 @@ STAT_CARDS = [
 
 # 房间颜色循环
 ROOM_COLORS = [
-    (56, 189, 248),   # 蓝
-    (52, 211, 153),   # 绿
+    (56, 189, 248),  # 蓝
+    (52, 211, 153),  # 绿
     (167, 139, 250),  # 紫
     (251, 113, 133),  # 红
-    (250, 204, 21),   # 黄
-    (45, 212, 191),   # 青
-    (251, 146, 60),   # 橙
+    (250, 204, 21),  # 黄
+    (45, 212, 191),  # 青
+    (251, 146, 60),  # 橙
 ]
 
 
@@ -55,7 +55,7 @@ async def draw_server_status_img(
     status: AnneStatus,
     players: List[AnneOnlinePlayer],
 ) -> Union[str, bytes]:
-    img = _prepare_bg(900, 1200)
+    img = _prepare_bg(900, 1800)
     draw = ImageDraw.Draw(img)
     w, _ = img.size
 

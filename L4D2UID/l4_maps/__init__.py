@@ -82,7 +82,7 @@ async def send_l4_maps_msg(bot: Bot, ev: Event):
 
     if arg in categories:
         cat = categories[arg]
-        logger.info(f"[l4_maps] 获取分类 \"{cat}\" 的地图...")
+        logger.info(f'[l4_maps] 获取分类 "{cat}" 的地图...')
         maps = await game_maps_api.get_maps_by_category(cat)
         if isinstance(maps, int):
             return await bot.send(f"获取分类地图失败 (错误码: {maps})")
@@ -151,6 +151,7 @@ async def send_l4_download_map_msg(bot: Bot, ev: Event):
         if file_name:
             # 保留扩展名
             import re
+
             m = re.search(r"\.(zip|vpk|rar|7z)", file_name, re.I)
             if m:
                 file_name = f"l4d2_map_{map_id}{m.group(0)}"
@@ -183,29 +184,16 @@ async def send_l4_download_map_msg(bot: Bot, ev: Event):
                         downloaded += len(chunk)
             return downloaded, total
 
-        downloaded, total = await asyncio.get_event_loop().run_in_executor(
-            None, _download
-        )
+        downloaded, total = await asyncio.get_event_loop().run_in_executor(None, _download)
 
         size_mb = downloaded / 1024 / 1024
-        await bot.send(
-            f"[l4] 下载完成！\n"
-            f"文件: {file_name}\n"
-            f"大小: {size_mb:.1f} MB"
-        )
+        await bot.send(f"[l4] 下载完成！\n文件: {file_name}\n大小: {size_mb:.1f} MB")
         try:
             await bot.send(MessageSegment.file(save_path, file_name))
         except Exception as e:
-            await bot.send(
-                f"[l4] 上传到聊天失败: {e}\n"
-                f"文件已保存到本地: {save_path}"
-            )
+            await bot.send(f"[l4] 上传到聊天失败: {e}\n文件已保存到本地: {save_path}")
         logger.info(f"[l4_maps] 下载完成: {save_path} ({size_mb:.1f} MB)")
     except Exception as e:
         logger.error(f"[l4_maps] 下载失败: {e}")
         # 文件下载失败时至少提供链接
-        await bot.send(
-            f"[l4] 文件较大，下载到本地失败: {e}\n"
-            f"直链(有时效性): {dl_url}\n"
-            f"建议用浏览器打开后下载。"
-        )
+        await bot.send(f"[l4] 文件较大，下载到本地失败: {e}\n直链(有时效性): {dl_url}\n建议用浏览器打开后下载。")

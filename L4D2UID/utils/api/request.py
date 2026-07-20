@@ -1,8 +1,7 @@
 import json as js
+from asyncio import sleep
 from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional, Union, cast
-
-from asyncio import sleep
 
 from bs4 import BeautifulSoup
 from gsuid_core.logger import logger
@@ -183,6 +182,7 @@ class L4D2Api:
             playtime_label = "季度时长" if is_quarter else "游玩时长"
             kills_label = "季度击杀数" if is_quarter else "总击杀数"
 
+            # ── Profile header ──
             profile = soup.find("div", class_="profile-header")
             if profile is None:
                 logger.warning(f"[l4] 玩家页面无profile-header: {data[:300]}")
@@ -200,22 +200,62 @@ class L4D2Api:
                     if badge:
                         steamid = badge.text.strip()
                 meta_source = playtime = lasttime = ""
-                for m in info_div.find_all("div", class_="meta-item"):
-                    text = m.get_text(strip=True)
-                    strong = m.find("strong")
-                    val = strong.text.strip() if strong else ""
-                    if source_label in text:
-                        meta_source = val
-                    elif playtime_label in text:
-                        playtime = val
-                    elif "最后上线" in text:
-                        lasttime = text.replace("最后上线:", "").strip()
+                meta_div = info_div.find("div", class_="profile-meta")
+                if meta_div:
+                    for m in meta_div.find_all("div", class_="meta-item"):
+                        text = m.get_text(strip=True)
+                        strong = m.find("strong")
+                        val = strong.text.strip() if strong else ""
+                        if source_label in text:
+                            meta_source = val
+                        elif playtime_label in text:
+                            playtime = val
+                        elif "最后上线" in text:
+                            lasttime = text.replace("最后上线:", "").strip()
+                else:
+                    # fallback: direct children
+                    for m in info_div.find_all("div", class_="meta-item"):
+                        text = m.get_text(strip=True)
+                        strong = m.find("strong")
+                        val = strong.text.strip() if strong else ""
+                        if source_label in text:
+                            meta_source = val
+                        elif playtime_label in text:
+                            playtime = val
+                        elif "最后上线" in text:
+                            lasttime = text.replace("最后上线:", "").strip()
             else:
                 meta_source = playtime = lasttime = ""
 
             scope_el = soup.find("div", class_="profile-scope-current")
             quarter_scope = scope_el.find("strong").text.strip() if scope_el else ""
 
+            # ── Rank overview ──
+            total_rank = total_rank_total = quarter_rank = quarter_rank_total = ""
+            rank_overview = soup.find("div", class_="profile-rank-overview")
+            if rank_overview:
+                rank_cards = rank_overview.find_all("section", class_="profile-rank-card")
+                for card in rank_cards:
+                    title_el = card.find("span", class_="profile-rank-title")
+                    title = title_el.get_text(strip=True) if title_el else ""
+                    value_el = card.find("div", class_="profile-rank-value")
+                    value_text = value_el.get_text(strip=True) if value_el else ""
+
+                    # Extract rank numbers from "第 X 名 / 共 Y 名"
+                    import re
+
+                    m = re.search(r"第\s*([\d,]+)\s*名\s*/\s*共\s*([\d,]+)\s*名", value_text)
+                    rank_num = m.group(1).replace(",", "") if m else ""
+                    rank_total = m.group(2).replace(",", "") if m else ""
+
+                    if "总积分" in title:
+                        total_rank = rank_num
+                        total_rank_total = rank_total
+                    elif "季度积分" in title:
+                        quarter_rank = rank_num
+                        quarter_rank_total = rank_total
+
+            # ── Stats grid ──
             kills = avg_headshots = ppm_val = melee_charge = "0"
             pills_give = adrenaline_give = map_clear = "0"
             grid = soup.find("div", class_="stats-grid")
@@ -242,6 +282,7 @@ class L4D2Api:
                     elif "地图通关" in label:
                         map_clear = val
 
+            # ── Data panels (扣分 / 辅助 / 各模式 / 感染者击杀) ──
             panels = soup.find_all("div", class_="data-panel")
             penalty = self._panel_by_title(panels, "扣分")
             support = self._panel_by_title(panels, "辅助")
@@ -276,6 +317,10 @@ class L4D2Api:
                     "playtime": playtime,
                     "lasttime": lasttime,
                     "quarter_scope": quarter_scope,
+                    "total_rank": total_rank,
+                    "total_rank_total": total_rank_total,
+                    "quarter_rank": quarter_rank,
+                    "quarter_rank_total": quarter_rank_total,
                 },
             )
             detail_dict = cast(

@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 from ..utils.api.models import AnnePlayer2
 from ..utils.error_reply import get_error
 from ..utils.l4_api import l4_api
-from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_30, l4_font_36
+from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_26, l4_font_30, l4_font_36
 from .panel_redesign import (
     MARGIN_X,
     QUARTER_PANEL_CONFIGS,
@@ -162,7 +162,7 @@ async def draw_anne_player_img(
     )
 
     card_x, card_y = 40, 100
-    card_w, card_h = 820, 205
+    card_w, card_h = 820, 230
     draw.rounded_rectangle(
         [card_x, card_y, card_x + card_w, card_y + card_h],
         radius=14,
@@ -181,6 +181,10 @@ async def draw_anne_player_img(
     playtime = info.get("playtime", "--")
     lasttime = info.get("lasttime", "--")
     score = str(detail["detail"].get("source", "0"))
+    total_rank = info.get("total_rank", "")
+    total_rank_total = info.get("total_rank_total", "")
+    quarter_rank = info.get("quarter_rank", "")
+    quarter_rank_total = info.get("quarter_rank_total", "")
 
     draw.text((170, card_y + 20), name, font=l4_font_36, fill=Colors.TEXT_DARK + (240,))
     draw.text(
@@ -219,6 +223,20 @@ async def draw_anne_player_img(
         font=l4_font_22,
         fill=Colors.TEXT_LIGHT_GRAY + (200,),
     )
+
+    # 排名显示（加大与上方间距）
+    rank_parts = []
+    if total_rank and total_rank_total:
+        rank_parts.append(f"总排名: {total_rank}/{total_rank_total}")
+    if quarter_rank and quarter_rank_total:
+        rank_parts.append(f"季度排名: {quarter_rank}/{quarter_rank_total}")
+    if rank_parts:
+        draw.text(
+            (170, meta_y + 48),
+            "  |  ".join(rank_parts),
+            font=l4_font_20,
+            fill=Colors.ACCENT_YELLOW + (220,),
+        )
 
     anne_head = load_image(TEXTURED / "anne_head.jpg").resize((80, 80))
     anne_ring = await draw_pic_with_ring(anne_head, 80)

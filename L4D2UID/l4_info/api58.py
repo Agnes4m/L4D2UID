@@ -4,10 +4,9 @@ from gsuid_core.logger import logger
 from gsuid_core.utils.image.convert import convert_img
 from PIL import Image, ImageDraw
 
-from ..utils.api.models import Player58Response
 from ..utils.error_reply import get_error
 from ..utils.l4_api import l4_api
-from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_24, l4_font_26, l4_font_36
+from ..utils.l4_font import l4_font_20, l4_font_22, l4_font_26, l4_font_36
 
 BG = (18, 20, 26)
 CARD = (26, 29, 37)

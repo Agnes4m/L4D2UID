@@ -102,6 +102,10 @@ class AnnePlayerInfo(TypedDict):
     playtime: str
     lasttime: str
     quarter_scope: str
+    total_rank: str  # 总积分排名名次
+    total_rank_total: str  # 总积分排名总人数
+    quarter_rank: str  # 季度积分排名名次
+    quarter_rank_total: str  # 季度积分排名总人数
 
 
 class AnnePlayer2(TypedDict):

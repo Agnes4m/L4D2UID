@@ -56,16 +56,11 @@ class GameMapsApi:
                     logger.warning(f"[l4_maps] 请求被拒绝(403): {url}")
                     return None
                 else:
-                    logger.warning(
-                        f"[l4_maps] 请求失败 (第{attempt + 1}/3次): "
-                        f"status={resp.status_code}"
-                    )
+                    logger.warning(f"[l4_maps] 请求失败 (第{attempt + 1}/3次): status={resp.status_code}")
                     if attempt < 2:
                         await sleep(2)
             except Exception as e:
-                logger.warning(
-                    f"[l4_maps] 请求异常 (第{attempt + 1}/3次): {e}"
-                )
+                logger.warning(f"[l4_maps] 请求异常 (第{attempt + 1}/3次): {e}")
                 if attempt < 2:
                     await sleep(2)
         return None
@@ -232,9 +227,7 @@ class GameMapsApi:
         logger.info(f"[l4_maps] 获取到 {len(items)} 个热门地图")
         return items[:15]
 
-    async def get_maps_by_category(
-        self, category: str, page: int = 1
-    ) -> Union[List[GameMap], int]:
+    async def get_maps_by_category(self, category: str, page: int = 1) -> Union[List[GameMap], int]:
         """按分类获取地图
 
         Args:
@@ -259,14 +252,10 @@ class GameMapsApi:
                 seen_ids.add(parsed["id"])
                 items.append(parsed)
 
-        logger.info(
-            f"[l4_maps] 分类 \"{category}\" 第{page}页: 获取到 {len(items)} 个地图"
-        )
+        logger.info(f'[l4_maps] 分类 "{category}" 第{page}页: 获取到 {len(items)} 个地图')
         return items
 
-    async def get_maps(
-        self, sort: str = "recent", page: int = 1
-    ) -> Union[List[GameMap], int]:
+    async def get_maps(self, sort: str = "recent", page: int = 1) -> Union[List[GameMap], int]:
         """获取地图列表（从 /l4d2/maps）
 
         Args:
@@ -299,9 +288,7 @@ class GameMapsApi:
         logger.info(f"[l4_maps] 地图列表 (sort={sort}, page={page}): {len(items)} 个")
         return items
 
-    async def get_mods(
-        self, sort: str = "recent", page: int = 1
-    ) -> Union[List[GameMap], int]:
+    async def get_mods(self, sort: str = "recent", page: int = 1) -> Union[List[GameMap], int]:
         """获取模组列表（从 /l4d2/mods）"""
         url = f"{L4D2_URL}/mods"
         params = []
@@ -365,7 +352,9 @@ class GameMapsApi:
             return items
 
         pages_results = await asyncio.gather(
-            _fetch_page(1), _fetch_page(2), _fetch_page(3),
+            _fetch_page(1),
+            _fetch_page(2),
+            _fetch_page(3),
             return_exceptions=True,
         )
 
@@ -375,7 +364,7 @@ class GameMapsApi:
             if len(results) >= 20:
                 break
 
-        logger.info(f"[l4_maps] 搜索 \"{keyword}\": 找到 {len(results)} 个结果")
+        logger.info(f'[l4_maps] 搜索 "{keyword}": 找到 {len(results)} 个结果')
         return results[:20]
 
     async def get_map_detail(self, map_id: str) -> Union[MapDetail, int]:
@@ -509,6 +498,7 @@ class GameMapsApi:
             # 评价数
             reviews_count = ""
             import re
+
             m = re.search(r"Reviews\s*\((\d+)\)", html)
             if m:
                 reviews_count = m.group(1)

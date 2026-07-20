@@ -38,6 +38,7 @@ async def _download_thumb(url: str) -> Optional[Image.Image]:
         logger.warning(f"[l4_maps] 缩略图下载异常: {e}")
     return None
 
+
 TEXTURED = Path(__file__).parent.parent / "l4_info" / "texture2d" / "anne"
 MARGIN_X = 40
 
@@ -49,12 +50,12 @@ CARDS_PER_ROW = 3
 
 # 颜色方案
 MAP_COLORS = [
-    (56, 189, 248),   # 蓝色
-    (52, 211, 153),   # 绿色
+    (56, 189, 248),  # 蓝色
+    (52, 211, 153),  # 绿色
     (167, 139, 250),  # 紫色
     (251, 113, 133),  # 红色
-    (250, 204, 21),   # 黄色
-    (45, 212, 191),   # 青色
+    (250, 204, 21),  # 黄色
+    (45, 212, 191),  # 青色
 ]
 
 
@@ -97,9 +98,7 @@ def _draw_footer(draw: ImageDraw.ImageDraw, y: int):
     )
 
 
-def _truncate_text(
-    draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int
-) -> str:
+def _truncate_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int) -> str:
     """截断文本以适应最大宽度"""
     if not text:
         return ""
@@ -114,9 +113,7 @@ def _truncate_text(
     return text[:1] + "…"
 
 
-async def draw_maps_list(
-    maps: List[GameMap], section_title: str = "最新地图"
-) -> Union[str, bytes]:
+async def draw_maps_list(maps: List[GameMap], section_title: str = "最新地图") -> Union[str, bytes]:
     """绘制地图列表图片"""
     n = len(maps)
     if n == 0:
@@ -269,9 +266,7 @@ async def draw_maps_list(
 
         # 作者
         author_y = title_y + 28
-        author_text = _truncate_text(
-            draw, f"作者: {gm['author']}", l4_font_20, CARD_W - 24
-        )
+        author_text = _truncate_text(draw, f"作者: {gm['author']}", l4_font_20, CARD_W - 24)
         draw.text(
             (cx + 12, author_y),
             author_text,
@@ -345,7 +340,9 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
     tl = d.get("type_label", "")
     if tl:
         draw.rounded_rectangle(
-            [x, y, x + 90, y + 28], radius=4, fill=(56, 189, 248, 200),
+            [x, y, x + 90, y + 28],
+            radius=4,
+            fill=(56, 189, 248, 200),
         )
         draw.text((x + 6, y + 3), tl, font=l4_font_20, fill=(255, 255, 255, 240))
         y += 44
@@ -439,12 +436,17 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
             else:
                 draw.rounded_rectangle(
                     [sx, sy, sx + ss_w, sy + ss_h],
-                    radius=4, fill=(30, 40, 60, 200),
-                    outline=Colors.PROFESSIONAL_BORDER + (80,), width=1,
+                    radius=4,
+                    fill=(30, 40, 60, 200),
+                    outline=Colors.PROFESSIONAL_BORDER + (80,),
+                    width=1,
                 )
-                draw.text((sx + ss_w // 2 - 28, sy + ss_h // 2 - 10),
-                          "无预览", font=l4_font_16,
-                          fill=Colors.TEXT_LIGHT_GRAY + (120,))
+                draw.text(
+                    (sx + ss_w // 2 - 28, sy + ss_h // 2 - 10),
+                    "无预览",
+                    font=l4_font_16,
+                    fill=Colors.TEXT_LIGHT_GRAY + (120,),
+                )
         y += ss_h + 20
 
     # ══════════════════════════════════════════
@@ -457,9 +459,8 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
         short = desc[:500]
         cpl = 50
         for i in range(0, len(short), cpl):
-            line = short[i:i + cpl]
-            draw.text((x + 8, y), line, font=l4_font_16,
-                      fill=Colors.TEXT_LIGHT_GRAY + (180,))
+            line = short[i : i + cpl]
+            draw.text((x + 8, y), line, font=l4_font_16, fill=Colors.TEXT_LIGHT_GRAY + (180,))
             y += 22
             if y > 1050:
                 break
@@ -475,9 +476,8 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
         y += 26
         tpl = 60
         for i in range(0, len(all_tags), tpl):
-            chunk = all_tags[i:i + tpl]
-            draw.text((x + 8, y), chunk, font=l4_font_16,
-                      fill=Colors.TEXT_LIGHT_GRAY + (160,))
+            chunk = all_tags[i : i + tpl]
+            draw.text((x + 8, y), chunk, font=l4_font_16, fill=Colors.TEXT_LIGHT_GRAY + (160,))
             y += 20
             if y > 1100:
                 break
@@ -492,8 +492,7 @@ async def draw_map_detail(detail) -> Union[str, bytes]:
     if d.get("file_date"):
         info_bits.append(d["file_date"])
     if info_bits:
-        draw.text((x, y), "  |  ".join(info_bits[:3]), font=l4_font_16,
-                  fill=Colors.TEXT_LIGHT_GRAY + (140,))
+        draw.text((x, y), "  |  ".join(info_bits[:3]), font=l4_font_16, fill=Colors.TEXT_LIGHT_GRAY + (140,))
         y += 30
 
     # ══════════════════════════════════════════

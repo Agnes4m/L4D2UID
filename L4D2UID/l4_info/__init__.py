@@ -28,8 +28,14 @@ async def send_l4_info_msg(bot: Bot, ev: Event):
     else:
         user_id = ev.user_id
 
+    # 先读用户个人 searchtype 覆盖（由 l4切换 设置）
+    user_searchtype = await L4D2Bind.get_searchtype(user_id)
     platform = l4d2_config.get_config("platform").data
-    logger.info(f"[l4]平台配置为{platform}")
+    if user_searchtype == "呆呆":
+        platform = "呆呆"
+    elif user_searchtype == "云":
+        platform = "电信anne"
+    logger.info(f"[l4]平台配置为{platform} (用户searchtype={user_searchtype})")
 
     if platform == "58":
         uid64 = await L4D2Bind.select_data(user_id)
